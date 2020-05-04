@@ -1,8 +1,8 @@
 ﻿local _G = _G
-local _, hqXP = ...
-_G.hqXPCounter = hqXP
+local _, BonusXP = ...
+_G.BonusXPCounter = BonusXP
 local playerFaction, _ = UnitFactionGroup("player");
-hqxpConfig = {};
+BonusXPConfig = {};
 
 
 local playerLevel = UnitLevel("player");
@@ -57,7 +57,7 @@ local linePositions = nil;
 local equipItemData = { 
 };
 
-hqXP.equipAllSlots = {
+BonusXP.equipAllSlots = {
 	INVSLOT_AMMO,
 	INVSLOT_HEAD,
 	INVSLOT_NECK,
@@ -80,7 +80,7 @@ hqXP.equipAllSlots = {
 	INVSLOT_TABARD,
 };
 
-hqXP.heirloomSlotAuras = {
+BonusXP.heirloomSlotAuras = {
 	[INVSLOT_HEAD]		= Heirloom10,
 	[INVSLOT_SHOULDER]	= Heirloom10,
 	[INVSLOT_CHEST]		= Heirloom10,
@@ -92,11 +92,11 @@ hqXP.heirloomSlotAuras = {
 	[INVSLOT_TRINKET2]	= Heirloom50PvPInstance,
 };
 
-hqXP.itemAuras = {
+BonusXP.itemAuras = {
 	[153714] = Rubellite5,
 };
 
-hqXP.anniversaryPattern = {
+BonusXP.anniversaryPattern = {
 	["en"] = { "WoW(.*)niversary" },
 	["pt"] = { "(.*)versário do WoW" },
 	["it"] = { "(.*)versario di WoW" },
@@ -108,7 +108,7 @@ hqXP.anniversaryPattern = {
 	["ko"] = { "월드 오브(.*)주년", "와우(.*)주년" },
 };
 
-hqXP.slotItemIdMap = {
+BonusXP.slotItemIdMap = {
 	[INVSLOT_AMMO]		= nil,
 	[INVSLOT_HEAD]		= nil,
 	[INVSLOT_NECK]		= nil,
@@ -242,19 +242,19 @@ local maxPlayerLevel = nil;
 local maxRAFPlayerLevel = nil;
 local isRAFEnabled = nil;
 
-function hqXP:isXpInfoDisabled()
+function BonusXP:isXpInfoDisabled()
 	return maxPlayerLevel==playerLevel or IsXPUserDisabled();
 end
 
-function hqXP:getShortHeight()
+function BonusXP:getShortHeight()
 	return xpDisabled and lineHeight or lineHeight * 2;
 end
 
-function hqXP:getFullHeight()
+function BonusXP:getFullHeight()
 	return xpDisabled and lineHeight*5 + gapLineHeight*3 or lineHeight*6 + gapLineHeight*4;
 end
 
-function hqXP:getMapTopParentInfo(mapID)
+function BonusXP:getMapTopParentInfo(mapID)
   local mapInfo = mapID and C_Map.GetMapInfo(mapID) or {};
 
   while (mapInfo.parentMapID and mapInfo.parentMapID ~= 0 and mapInfo.parentMapID ~= AzerothId and mapInfo.parentMapID ~= CosmosId) do
@@ -263,30 +263,30 @@ function hqXP:getMapTopParentInfo(mapID)
   return mapInfo;
 end
 
-function hqXP:getContinentId(event)
+function BonusXP:getContinentId(event)
 	currentUiMapID = C_Map.GetBestMapForUnit("player");
-	local mapInfo = hqXP:getMapTopParentInfo(currentUiMapID);
+	local mapInfo = BonusXP:getMapTopParentInfo(currentUiMapID);
 	
 	return mapInfo.mapID or currentPlayerContinent;
 end
 
-function hqXP:initialize(f)
+function BonusXP:initialize(f)
 	playerLevel = UnitLevel("player");
 	maxPlayerLevel = GetMaxPlayerLevel();
 	maxRAFPlayerLevel = MAX_PLAYER_LEVEL_TABLE[GetMaximumExpansionLevel() - 1];
 	isRAFEnabled = C_RecruitAFriend.IsEnabled();
 	
-	xpDisabled = hqXP:isXpInfoDisabled();
+	xpDisabled = BonusXP:isXpInfoDisabled();
 	
 	local l = GetLocale();
 	playerLanguage = l and string.sub(l, 1, 2) or "en";
-	currentPlayerContinent = hqXP:getContinentId("Initialize");
+	currentPlayerContinent = BonusXP:getContinentId("Initialize");
 	local _, instanceType = IsInInstance(); 
 	isInPvPInstance = instanceType=="pvp" or instanceType=="arena";
 	
 	xpExhaustion = GetXPExhaustion() or 0;
 	
-	local isRafQuestBonusActive, isRafKillBonusActive = hqXP:getGroupInfo();
+	local isRafQuestBonusActive, isRafKillBonusActive = BonusXP:getGroupInfo();
 	isCurrentRAFBonusActive = isRafQuestBonusActive or isRafKillBonusActive;
 	
 	f:SetWidth(200);
@@ -299,25 +299,25 @@ function hqXP:initialize(f)
 	};
 	
 	local rafdy = isCurrentRAFBonusActive and (lineHeight + gapLineHeight) or 0;
-	local shortHeight = hqXP:getShortHeight();
-	local fullHeight = hqXP:getFullHeight();
-	f:SetHeight(hqxpConfig.collapsed and fullHeight or shortHeight);
+	local shortHeight = BonusXP:getShortHeight();
+	local fullHeight = BonusXP:getFullHeight();
+	f:SetHeight(BonusXPConfig.collapsed and fullHeight or shortHeight);
 	
-	f.shortLine = hqXP:createLabel(f, 10, linePositions[0]);
-	f.RafXpBonus = hqXP:createLabel(f, 10, linePositions[0]);
-	f.equipXpBonus = hqXP:createLabel(f, 10, linePositions[0]-rafdy);
-	f.auraXpBonus = hqXP:createLabel(f, 10, linePositions[1]-rafdy);
-	f.totalKillXpBonus = hqXP:createLabel(f, 10, linePositions[2]-rafdy);
-	f.totalQuestXpBonus = hqXP:createLabel(f, 10, linePositions[3]-rafdy);
-	f.XPexhaustion = hqXP:createLabel(f, 10, linePositions[4]-rafdy);
-	f.shortXpLine =  hqXP:createLabel(f, 10, 0);
+	f.shortLine = BonusXP:createLabel(f, 10, linePositions[0]);
+	f.RafXpBonus = BonusXP:createLabel(f, 10, linePositions[0]);
+	f.equipXpBonus = BonusXP:createLabel(f, 10, linePositions[0]-rafdy);
+	f.auraXpBonus = BonusXP:createLabel(f, 10, linePositions[1]-rafdy);
+	f.totalKillXpBonus = BonusXP:createLabel(f, 10, linePositions[2]-rafdy);
+	f.totalQuestXpBonus = BonusXP:createLabel(f, 10, linePositions[3]-rafdy);
+	f.XPexhaustion = BonusXP:createLabel(f, 10, linePositions[4]-rafdy);
+	f.shortXpLine =  BonusXP:createLabel(f, 10, 0);
 	
-	hqXP:updateFrameTextPositions(f, false);
+	BonusXP:updateFrameTextPositions(f, false);
 	
-	hqXP:registerEvents(f);
+	BonusXP:registerEvents(f);
 end
 
-function hqXP:registerEvents(frame)
+function BonusXP:registerEvents(frame)
 	frame:RegisterEvent("PLAYER_LEVEL_UP");
 	frame:RegisterEvent("ZONE_CHANGED_NEW_AREA");
 	frame:RegisterEvent("ZONE_CHANGED");
@@ -329,12 +329,12 @@ function hqXP:registerEvents(frame)
 	frame:RegisterEvent("PLAYER_REGEN_DISABLED");
 	frame:RegisterEvent("PLAYER_REGEN_ENABLED");
 
-	hqXP.elapsedTimer = 1;
+	BonusXP.elapsedTimer = 1;
 	frame:SetScript("OnUpdate", function (self, elapsed)
-		hqXP.elapsedTimer = hqXP.elapsedTimer + elapsed;
-		if hqXP.elapsedTimer < 0.1 then return end
+		BonusXP.elapsedTimer = BonusXP.elapsedTimer + elapsed;
+		if BonusXP.elapsedTimer < 0.1 then return end
 		
-		local isRafQuestBonusActive, isRafKillBonusActive, closeMemberCount, closeFriendCount = hqXP:getGroupInfo();
+		local isRafQuestBonusActive, isRafKillBonusActive, closeMemberCount, closeFriendCount = BonusXP:getGroupInfo();
 		
 		local isRAFBonusActive = isRafQuestBonusActive or isRafKillBonusActive;
 		local isRAFStateChanged = isCurrentRAFBonusActive ~= isRAFBonusActive;
@@ -351,32 +351,32 @@ function hqXP:registerEvents(frame)
 		xpBonusKill = (xpBaseModBonusKill / closeMemberCount) * (1 + 0.1078 * (closeMemberCount-1)) * (isRestBonusActive and 2 or ((100 + rafBonus.killActive) / 100)) * 100 - 100;
 		xpBonusQuest = (100 + equipXpBonus.totalQuest + auraXpBonus.quest) * (100 + rafBonus.questActive) / 100 - 100;
 		
-		hqXP:updateFrameTextPositions(self, isRAFStateChanged);
-		hqXP:updateFrameText(self);
-		hqXP.elapsedTimer = 0;
+		BonusXP:updateFrameTextPositions(self, isRAFStateChanged);
+		BonusXP:updateFrameText(self);
+		BonusXP.elapsedTimer = 0;
 	end);
 end
 
 
-function hqXP:getItemAuraXpBonus(auraId, itemId)
+function BonusXP:getItemAuraXpBonus(auraId, itemId)
 	local spinfo = itemAuraXPInfo[auraId];
 	
 	return spinfo and spinfo.getBonus and spinfo.getBonus(itemId) or spinfo;
 end
 
-function hqXP:getSpInfoBonus(spinfo, sr)
+function BonusXP:getSpInfoBonus(spinfo, sr)
 	return spinfo.getBonus and spinfo.getBonus(spinfo, sr) or { 
 		quest = spinfo.quest or spinfo.questId and sr[15 + spinfo.questId] or 0,
 		kill = spinfo.kill or spinfo.killId and sr[15 + spinfo.killId] or 0
 	};
 end
 
-function hqXP:isWowAnniversaryAura(label, id)
+function BonusXP:isWowAnniversaryAura(label, id)
 	if AnniversaryId then
 		return AnniversaryId == id and AnniversaryWorkId;
 	end
 	
-	local pattern = hqXP.anniversaryPattern[playerLanguage];
+	local pattern = BonusXP.anniversaryPattern[playerLanguage];
 	
 	for i=1, #pattern do
 		if string.match(label, pattern[i]) then 
@@ -387,13 +387,13 @@ function hqXP:isWowAnniversaryAura(label, id)
 	return nil;
 end
 
-function hqXP:getAuraXpBonus(sr, canbeAnniversary)
+function BonusXP:getAuraXpBonus(sr, canbeAnniversary)
 	local spinfo, cnt, result, lvl;
 	local name = sr[1];
 	local spellId = sr[10];
 	
 	if canbeAnniversary then
-		spellId = hqXP:isWowAnniversaryAura(name, spellId) or spellId;
+		spellId = BonusXP:isWowAnniversaryAura(name, spellId) or spellId;
 	end
 	
 	spinfo = SpellXPInfo[spellId];
@@ -412,7 +412,7 @@ function hqXP:getAuraXpBonus(sr, canbeAnniversary)
 			spinfo = spinfo.level[lvl] or spinfo;
 		end
 		
-		result = hqXP:getSpInfoBonus(spinfo, sr);
+		result = BonusXP:getSpInfoBonus(spinfo, sr);
 	else
 		result = { kill = 0, quest = 0 };
 	end
@@ -421,7 +421,7 @@ function hqXP:getAuraXpBonus(sr, canbeAnniversary)
 	return result;
 end
 
-function hqXP:isMemberVisible(memberId, isInDraenorGarrison)
+function BonusXP:isMemberVisible(memberId, isInDraenorGarrison)
 	local memberDistance, _ = UnitDistanceSquared(memberId);
 	-- UnitIsVisible(memberId)
 	if memberDistance < 10000 then
@@ -433,7 +433,7 @@ function hqXP:isMemberVisible(memberId, isInDraenorGarrison)
 	return false;
 end
 
-function hqXP:getGroupInfo()		
+function BonusXP:getGroupInfo()		
 	local closeMemberCount, closeFriendCount = 1, 1;
 	local minLevelRange, minEffLevelRange = 1000, 1000;
 	local isSameExpansion = false;
@@ -453,7 +453,7 @@ function hqXP:getGroupInfo()
         while index <= numPartyMembers do
             local memberId = "party" .. index;
             if UnitIsPlayer(memberId) then
-				if hqXP:isMemberVisible(memberId, isInDraenorGarrison) then
+				if BonusXP:isMemberVisible(memberId, isInDraenorGarrison) then
 					closeMemberCount = closeMemberCount + 1;
 					
 					local memberGuid = UnitGUID(memberId);
@@ -489,7 +489,7 @@ function hqXP:getGroupInfo()
 end
 
 
-function hqXP:refreshSpellData()
+function BonusXP:refreshSpellData()
 	local name, spellId, iconId, perc;
 
 	auraXpBonus = { kill=0, quest=0 };
@@ -505,7 +505,7 @@ function hqXP:refreshSpellData()
 
 		
 		if name then 
-			local bonus = hqXP:getAuraXpBonus(sr, not isAnniversaryFound);
+			local bonus = BonusXP:getAuraXpBonus(sr, not isAnniversaryFound);
 			
 			if bonus.isBlockXPGainAura then
 				auraXpBonus = { kill=-100, quest=-100, isBlockXPGainAura = true };
@@ -526,7 +526,7 @@ function hqXP:refreshSpellData()
 	end 
 end
 
-function hqXP:refreshEquipDataSlot(slotId, ...)
+function BonusXP:refreshEquipDataSlot(slotId, ...)
 	local itemLink = GetInventoryItemLink("player", slotId);
 	local eqItem, alreadyLoaded, id, name = {
 		slotId = slotId,
@@ -549,7 +549,7 @@ function hqXP:refreshEquipDataSlot(slotId, ...)
 			end	
 
 			if name then
-				eqItem = hqXP:readFullItemData(itemLink);
+				eqItem = BonusXP:readFullItemData(itemLink);
 				eqItem.slotId = slotId;
 			end
 			id = id or eqItem.id;
@@ -563,27 +563,27 @@ function hqXP:refreshEquipDataSlot(slotId, ...)
 	end
 	
 	if eqItem.heirloom then 
-		eqItem.heirloom.auraId = hqXP.heirloomSlotAuras[slotId];
+		eqItem.heirloom.auraId = BonusXP.heirloomSlotAuras[slotId];
 	end
 	
-	hqXP.slotItemIdMap[slotId] = eqItem.id or nil;
+	BonusXP.slotItemIdMap[slotId] = eqItem.id or nil;
 	
 	return eqItem;
 end
 
-function hqXP:refreshEquipData()
+function BonusXP:refreshEquipData()
 	local count, eqItem, slotId;
 	local heirloomIDs = _G.C_Heirloom.GetHeirloomItemIDs(); -- required to get heirlooms data ready
 	
-	count = #hqXP.equipAllSlots;
+	count = #BonusXP.equipAllSlots;
 	for i=1,count do
-		slotId = hqXP.equipAllSlots[i];
-		hqXP:refreshEquipDataSlot(slotId);
+		slotId = BonusXP.equipAllSlots[i];
+		BonusXP:refreshEquipDataSlot(slotId);
 	end
 end
 
 
-function hqXP:calculateEquipment()
+function BonusXP:calculateEquipment()
 	if 0 < #awaitingHeirloomData then
 		forceUpdateGearInfo = true;
 		return false;
@@ -593,13 +593,13 @@ function hqXP:calculateEquipment()
 	equipXpBonus = { kill=0, quest=0 };
 	heirloomXpBonus = { kill=0, quest=0 };
 	
-	for slotId, itemId in pairs(hqXP.slotItemIdMap) do 
+	for slotId, itemId in pairs(BonusXP.slotItemIdMap) do 
 		item = itemId and equipItemData[itemId];
 		
 		if item then
 			if item.heirloom and playerLevel < item.heirloom.maxLevel then
 				if item.heirloom.auraId then
-					xpBonus = hqXP:getItemAuraXpBonus(item.heirloom.auraId, itemId);
+					xpBonus = BonusXP:getItemAuraXpBonus(item.heirloom.auraId, itemId);
 					
 					if Heirloom50PvPInstance == item.heirloom.auraId then
 						equipXpBonus.quest = equipXpBonus.quest + xpBonus.quest;
@@ -611,7 +611,7 @@ function hqXP:calculateEquipment()
 				end
 			end
 			
-			xpBonus = item.enchantId and hqXP:getItemAuraXpBonus(item.enchantId, itemId);
+			xpBonus = item.enchantId and BonusXP:getItemAuraXpBonus(item.enchantId, itemId);
 			if xpBonus then
 				equipXpBonus.quest = equipXpBonus.quest + xpBonus.quest;
 				equipXpBonus.kill = equipXpBonus.kill + xpBonus.kill;
@@ -620,9 +620,9 @@ function hqXP:calculateEquipment()
 			local cnt, gemId = #item.gems;
 			for i=1, cnt do
 				gemId = item.gems[i];
-				auraId = gemId > 0 and hqXP.itemAuras[gemId]
+				auraId = gemId > 0 and BonusXP.itemAuras[gemId]
 				if auraId then
-					xpBonus = hqXP:getItemAuraXpBonus(auraId, itemId);
+					xpBonus = BonusXP:getItemAuraXpBonus(auraId, itemId);
 					equipXpBonus.quest = equipXpBonus.quest + xpBonus.quest;
 					equipXpBonus.kill = equipXpBonus.kill + xpBonus.kill;
 				end
@@ -633,11 +633,11 @@ function hqXP:calculateEquipment()
 	return true;
 end
 
-function hqXP:updateGearInfo()
+function BonusXP:updateGearInfo()
 	if (#awaitingData) > 0 then 
 		return false; 
 	end
-	if not hqXP:calculateEquipment() then
+	if not BonusXP:calculateEquipment() then
 		forceUpdateGearInfo = true;
 		return false;
 	end
@@ -645,12 +645,12 @@ function hqXP:updateGearInfo()
 	return true;
 end
 
-function hqXP:updateFrameTextPositions(f, isRAFStateChanged)
+function BonusXP:updateFrameTextPositions(f, isRAFStateChanged)
 	local rafdy = isCurrentRAFBonusActive and (lineHeight + gapLineHeight) or 0;
-	local shortHeight = hqXP:getShortHeight();
-	local fullHeight = hqXP:getFullHeight();
+	local shortHeight = BonusXP:getShortHeight();
+	local fullHeight = BonusXP:getFullHeight();
 	
-	if hqxpConfig.collapsed then
+	if BonusXPConfig.collapsed then
 		if(f:GetHeight() > shortHeight) then
 			f:SetHeight(shortHeight);
 			
@@ -680,33 +680,33 @@ function hqXP:updateFrameTextPositions(f, isRAFStateChanged)
 	
 	if isRAFStateChanged then
 
-		hqXP:setLabelTop(f, f.equipXpBonus, linePositions[0]-rafdy);  -- 5
-		hqXP:setLabelTop(f, f.auraXpBonus, linePositions[1]-rafdy); -- 25
-		hqXP:setLabelTop(f, f.totalKillXpBonus, linePositions[2]-rafdy); --50
-		hqXP:setLabelTop(f, f.totalQuestXpBonus, linePositions[3]-rafdy); --70
-		hqXP:setLabelTop(f, f.XPexhaustion, linePositions[4]-rafdy); --95
+		BonusXP:setLabelTop(f, f.equipXpBonus, linePositions[0]-rafdy);  -- 5
+		BonusXP:setLabelTop(f, f.auraXpBonus, linePositions[1]-rafdy); -- 25
+		BonusXP:setLabelTop(f, f.totalKillXpBonus, linePositions[2]-rafdy); --50
+		BonusXP:setLabelTop(f, f.totalQuestXpBonus, linePositions[3]-rafdy); --70
+		BonusXP:setLabelTop(f, f.XPexhaustion, linePositions[4]-rafdy); --95
 	end
 	
-	hqXP:setLabelTop(f, f.shortXpLine, -f:GetHeight()+lineHeight*2 );
+	BonusXP:setLabelTop(f, f.shortXpLine, -f:GetHeight()+lineHeight*2 );
 end
 
-function hqXP:updateFrameText(f)
-	if not hqxpConfig.collapsed then
+function BonusXP:updateFrameText(f)
+	if not BonusXPConfig.collapsed then
 		f.RafXpBonus:SetText("RAF bonus. Kill: ".. rafBonus.killActive .. "%, Quest: ".. rafBonus.questActive .. "%" );
 		f.equipXpBonus:SetText("Equipment bonus. Kill: ".. equipXpBonus.totalKill .. "%, Quest: ".. equipXpBonus.totalQuest .. "%" );
 		f.auraXpBonus:SetText("Aura bonus. Kill: ".. auraXpBonus.kill .. "%, Quest: ".. auraXpBonus.quest .. "%");
 		f.totalQuestXpBonus:SetText("Total. Quest bonus: |c"..valColor.. xpBonusQuest .. "%|r");
 	end
 	
-	hqXP:updateXPText(f);
+	BonusXP:updateXPText(f);
   updateButton(xpBonusQuest);
 end
 
-function hqXP:updateXPExhaustion(f)
+function BonusXP:updateXPExhaustion(f)
 	local isRestBonusActive = xpExhaustion > 0; 
 	local killBonus = xpBonusKill;
 	
-	if not hqxpConfig.collapsed then
+	if not BonusXPConfig.collapsed then
 		f.totalKillXpBonus:SetText("Total. Kill bonus: |c"..valColor..killBonus .. "%|r" );
 	
 		f.XPexhaustion:SetText("XPExhaustion: |c"..valColor.. xpExhaustion .."|r");
@@ -717,7 +717,7 @@ function hqXP:updateXPExhaustion(f)
 	return XPExhaustion;
 end
 
-function hqXP:updateXPText(f)
+function BonusXP:updateXPText(f)
   local text = "";
   for i=1, #auras do
     text = text .. string.format("%s: %s%%\r", auras[i].name, auras[i].questBonus);
@@ -725,7 +725,7 @@ function hqXP:updateXPText(f)
   f.shortXpLine:SetText(text);
 end
 
-function hqXP:onLaterLoading(self)
+function BonusXP:onLaterLoading(self)
 	local onDemand = IsAddOnLoadOnDemand("BonusXP");
 	
 	if not isPlayerReadyFired and IsLoggedIn() and onDemand then
@@ -733,68 +733,68 @@ function hqXP:onLaterLoading(self)
 	end
 end
 
-function hqXP:onPlayerReady(self, event, arg1)
+function BonusXP:onPlayerReady(self, event, arg1)
 	if isPlayerReadyFired then return end
 	isPlayerReadyFired = true;
 	
-	hqXP:initialize(self);
+	BonusXP:initialize(self);
 	
-	hqXP:refreshEquipData();
-	hqXP:refreshSpellData();
-	hqXP:updateGearInfo();
+	BonusXP:refreshEquipData();
+	BonusXP:refreshSpellData();
+	BonusXP:updateGearInfo();
 	
 end
 
-function hqXP:onEventHandler(self, event, ...)
+function BonusXP:onEventHandler(self, event, ...)
 	local arg1, arg2, arg3, arg4, arg5 = ...
 	
 	if event == "PLAYER_LOGIN" then
 		local n = UnitAura("player",1);
 		if not isPlayerReadyFired and n then
-			hqXP:onPlayerReady(self, event, arg1);
+			BonusXP:onPlayerReady(self, event, arg1);
 		end
 		
 		self:UnregisterEvent("PLAYER_LOGIN");
 	elseif event == "PLAYER_EQUIPMENT_CHANGED" then
-		hqXP:refreshEquipDataSlot(arg1);
-		hqXP:updateGearInfo();
+		BonusXP:refreshEquipDataSlot(arg1);
+		BonusXP:updateGearInfo();
 		isEquipmentChanged = true;
 	elseif event == "UNIT_AURA" and arg1 == "player" then
 		if not isPlayerReadyFired then
-			hqXP:onPlayerReady(self, event, arg2);
+			BonusXP:onPlayerReady(self, event, arg2);
 		elseif isEquipmentChanged then
 			isEquipmentChanged = false;
 		else
 			
-			hqXP:refreshSpellData();
+			BonusXP:refreshSpellData();
 		end
 	elseif event == "ZONE_CHANGED_NEW_AREA" or event == "ZONE_CHANGED" or event == "ZONE_CHANGED_INDOORS" then 
-		currentPlayerContinent = hqXP:getContinentId(event);
-		hqXP:refreshSpellData();
+		currentPlayerContinent = BonusXP:getContinentId(event);
+		BonusXP:refreshSpellData();
 		
 		local _, instanceType = IsInInstance(); 
 		local isInPvPArea = instanceType=="pvp" or instanceType=="arena";
 		local isAreaChanged = isInPvPArea ~= isInPvPInstance;
 		isInPvPInstance = isInPvPArea;
-		if isAreaChanged then hqXP:updateGearInfo(); end
+		if isAreaChanged then BonusXP:updateGearInfo(); end
 		
 		uiMapArtID = C_Map.GetMapArtID(currentUiMapID or -1); 
 	elseif event == "ADDON_LOADED" and arg1=="BonusXP" then 
-		hqXP:onLaterLoading(self);
+		BonusXP:onLaterLoading(self);
 		
 		print("XP Bonus Counter Loaded!");
 		self:UnregisterEvent("ADDON_LOADED");
 	elseif event == "PLAYER_LEVEL_UP" then
 		playerLevel = arg1 or UnitLevel("player");
-		hqXP:refreshEquipData();
-		hqXP:updateGearInfo();
+		BonusXP:refreshEquipData();
+		BonusXP:updateGearInfo();
 	elseif event == "GET_ITEM_INFO_RECEIVED" then
 		local slotId = awaitingData[arg1];
 		
 		if slotId then 
 			awaitingData[arg1] = nil;
 			
-			hqXP:updateGearInfo();
+			BonusXP:updateGearInfo();
 		end
 	elseif event == "HEIRLOOMS_UPDATED" and arg2=="UPGRADE" then
 		local item = equipItemData[arg1];
@@ -802,12 +802,12 @@ function hqXP:onEventHandler(self, event, ...)
 			olditemMaxLevel = item.heirloom.maxLevel;
 			item.heirloom.maxLevel = select(10, C_Heirloom.GetHeirloomInfo(arg1));
 			
-			if hqXP.slotItemIdMap[item.slotId] == arg1 and playerLevel > olditemMaxLevel and playerLevel < item.heirloom.maxLevel then
-				hqXP:updateGearInfo();
+			if BonusXP.slotItemIdMap[item.slotId] == arg1 and playerLevel > olditemMaxLevel and playerLevel < item.heirloom.maxLevel then
+				BonusXP:updateGearInfo();
 			end
 		end
 	elseif event == "HEIRLOOMS_UPDATED" then
-		hqXP:onPlayerReady(self, event, arg1);
+		BonusXP:onPlayerReady(self, event, arg1);
 		local cnt = #awaitingHeirloomData;
 		if not arg1 and not arg2 and cnt > 0 then
 			for i=1, cnt do
@@ -820,10 +820,10 @@ function hqXP:onEventHandler(self, event, ...)
 			end
 			if forceUpdateGearInfo then
 				forceUpdateGearInfo = false;
-				hqXP:updateGearInfo();
+				BonusXP:updateGearInfo();
 			elseif forceCalculateEquipment then
 				forceCalculateEquipment = false;
-				hqXP:calculateEquipment();
+				BonusXP:calculateEquipment();
 			end
 		end
 	elseif event == "UPDATE_EXHAUSTION" then
@@ -842,7 +842,7 @@ function hqXP:onEventHandler(self, event, ...)
 end
 
 
-function hqXP:readFullItemData(itemLink)
+function BonusXP:readFullItemData(itemLink)
 	local id, _, color, enchantId, jewels, bonusIds;
 	id, _, _, _, _, color, enchantId, jewels, bonusIds = getItemLinkInfo(itemLink);
 	
@@ -863,7 +863,7 @@ function hqXP:readFullItemData(itemLink)
 	return item;
 end
 
-function hqXP:createMainFrame()
+function BonusXP:createMainFrame()
 
   button = CreateFrame("Button", "BonusXPButton", CharacterStatsPane, "UIPanelButtonGrayTemplate")
   button:SetHeight(20)
@@ -894,7 +894,7 @@ function hqXP:createMainFrame()
 	f:RegisterEvent("PLAYER_LOGOUT");
 	
 	f:SetScript("OnEvent", function(self, ...)
-		hqXP:onEventHandler(f, ...);
+		BonusXP:onEventHandler(f, ...);
 	end);
 
 
@@ -905,16 +905,16 @@ function updateButton(total)
   button:SetText(string.format("Bonus XP: %s%%\r", total));
 end
 
-function hqXP:createLabel(f, ...)
+function BonusXP:createLabel(f, ...)
 	local  x, y, parentPos, labelPos = ... ;
 	local l = f:CreateFontString();
-	l:SetFontObject(hqXP:getFont());
+	l:SetFontObject(BonusXP:getFont());
 	l:SetPoint(labelPos or "TOPLEFT", f, parentPos or "TOPLEFT", x or 0, y or 0);
 	
 	return l;
 end
 
-function hqXP:createButton(f, opts)
+function BonusXP:createButton(f, opts)
 	opts = opts or {};
 	local f = CreateFrame("Button", opts.name, f or UIParent)
 	local backDrop = opts.backDrop or {
@@ -928,7 +928,7 @@ function hqXP:createButton(f, opts)
 	f:SetBackdrop(backDrop);
 	f:SetBackdropColor(bdColor.r, bdColor.g, bdColor.b, bdColor.a);
 	f:SetBackdropBorderColor(bdBoderColor.r, bdBoderColor.g, bdBoderColor.b, bdBoderColor.a);
-	f:SetNormalFontObject(opts.font or hqXP:getFont());
+	f:SetNormalFontObject(opts.font or BonusXP:getFont());
 	
 	f:SetSize(opts.width or 25, opts.height or 19);
 	
@@ -936,12 +936,12 @@ function hqXP:createButton(f, opts)
 	return f
 end
 
-function hqXP:setLabelTop(f, l, y)
+function BonusXP:setLabelTop(f, l, y)
 	l:ClearAllPoints();
 	l:SetPoint("TOPLEFT", f, "TOPLEFT", 5, y);
 end
 
-function hqXP:getFont()
+function BonusXP:getFont()
 	local font = fontFRIZQT;
 
 	if not font then
@@ -1022,4 +1022,4 @@ if not _G.strsplit then
 	end
 end
 
-hqXP:createMainFrame();
+BonusXP:createMainFrame();
