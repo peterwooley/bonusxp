@@ -14,6 +14,7 @@ local xpBonusKill = 0;
 local equipXpBonus = {kill=0, quest=0}; 
 local auraXpBonus = {kill=0, quest=0};
 local auras = {};
+local equipment = {};
 local heirloomXpBonus = {kill=0, quest=0};
 
 local xpBonus5, xpBonus10, rafBonus = { quest = 5, kill = 5 }, { quest = 10, kill = 10 }, { kill=50, quest=50 };
@@ -357,12 +358,16 @@ function BonusXP:onUpdate(elapsed)
 
   BonusXP:updateFrameTextPositions(tooltip, isRAFStateChanged);
   BonusXP:updateFrameText(tooltip);
-  BonusXP:updateTooltipHeight();
+  BonusXP:updateTooltipSize();
   BonusXP.elapsedTimer = 0;
 end
 
-function BonusXP:updateTooltipHeight()
+function BonusXP:updateTooltipSize()
   tooltip:SetHeight(tooltip:GetTop() - BonusXP_Tooltip_Total:GetBottom() + 10);
+
+  local listWidth = math.max(BonusXP_Tooltip_EquipmentList:GetWidth(), BonusXP_Tooltip_BuffsList:GetWidth());
+  local width = math.max(listWidth+50, 200);
+  tooltip:SetWidth(width);
 end
 
 
@@ -597,6 +602,7 @@ function BonusXP:calculateEquipment()
 		return false;
 	end
 	local xpBonus,auraId, slotId, itemId, item;
+  equipment = {};
 	
 	equipXpBonus = { kill=0, quest=0 };
 	heirloomXpBonus = { kill=0, quest=0 };
@@ -616,6 +622,8 @@ function BonusXP:calculateEquipment()
 						heirloomXpBonus.quest = heirloomXpBonus.quest + xpBonus.quest;
 						heirloomXpBonus.kill = heirloomXpBonus.kill + xpBonus.kill;
 					end
+
+          equipment[#equipment+1] = { name = GetItemInfo(itemId), id = itemId, questBonus = xpBonus.quest, killBonus = xpBonus.kill };
 				end
 			end
 			
@@ -712,6 +720,7 @@ function BonusXP:updateFrameText(f)
     BonusXP_Tooltip_RAFTotal:Hide();
   end
 	BonusXP:updateBuffText();
+  BonusXP:updateEquipmentText();
   updateButton();
 end
 
@@ -731,10 +740,19 @@ function BonusXP:updateBuffText()
     values = values .. string.format("%s%%\r", auras[i].questBonus);
   end
 
-
-
   BonusXP_Tooltip_BuffsList:SetText(names);
   BonusXP_Tooltip_BuffsListTotal:SetText(values);
+end
+
+function BonusXP:updateEquipmentText()
+  local names, values = "", "";
+  for i=1, #equipment do
+    names = names .. string.format("%s\r", equipment[i].name);
+    values = values .. string.format("%s%%\r", equipment[i].questBonus);
+  end
+
+  BonusXP_Tooltip_EquipmentList:SetText(names);
+  BonusXP_Tooltip_EquipmentListTotal:SetText(values);
 end
 
 function BonusXP:onLaterLoading(self)
