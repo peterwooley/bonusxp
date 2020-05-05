@@ -7,4 +7,5 @@
 ## DefaultState: enabled
 ## SavedVariables: bonusxp
 
+bonusxp.xml
 bonusxp.lua

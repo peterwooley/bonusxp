@@ -1,0 +1,80 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\FrameXML\UI.xsd">
+  <Button name="BonusXP_InventoryButton" parent="CharacterStatsPane" inherits="UIPanelButtonGrayTemplate">
+    <Size><AbsDimension x="120" y="20"/></Size>
+    <Anchors>
+      <Anchor point="BOTTOMLEFT">
+        <Offset><AbsDimension x="10" y="10"/></Offset>
+      </Anchor>
+    </Anchors>
+  </Button>
+
+  <Frame name="BonusXP_Tooltip" parent="BonusXP_InventoryButton" inherits="TooltipBorderedFrameTemplate" frameStrata="TOOLTIP">
+    <Size><AbsDimension x="200" y="300"/></Size>
+    <Anchors>
+      <Anchor point="TOPLEFT">
+        <Offset><AbsDimension x="0" y="-20"/></Offset>
+      </Anchor>
+    </Anchors>
+    <Layers>
+      <Layer name="$parent_Buffs" parent="BonusXP_Tooltip">
+        <FontString name="$parent_BuffsTitle" inherits="Game13Font" text="Buffs" justifyH="LEFT" justifyV="TOP">
+          <Anchors>
+            <Anchor point="TOPLEFT" relativeTo="BonusXP_Tooltip" x="10" y="-10" />
+          </Anchors>
+        </FontString>
+        <FontString name="$parent_BuffsTotal" inherits="Game13Font" text="100%" justifyH="RIGHT" justifyV="TOP">
+          <Anchors>
+            <Anchor point="TOPRIGHT" relativeTo="BonusXP_Tooltip" x="-10" y="-10" />
+          </Anchors>
+        </FontString>
+        <FontString name="$parent_BuffsList" inherits="GameNormalNumberFont" text="Buffs List" justifyH="LEFT" justifyV="TOP">
+          <Anchors>
+            <Anchor point="TOPLEFT" relativeTo="BonusXP_Tooltip_BuffsTitle" relativePoint="BOTTOMLEFT" x="0" y="-5" />
+          </Anchors>
+        </FontString>
+        <FontString name="$parent_BuffsListTotal" inherits="GameNormalNumberFont" text="" justifyH="RIGHT" justifyV="TOP">
+          <Anchors>
+            <Anchor point="TOPRIGHT" relativeTo="$parent_BuffsTotal" relativePoint="BOTTOMRIGHT" x="0" y="-5" />
+          </Anchors>
+        </FontString>
+      </Layer>
+      <Layer name="$parent_Equipment">
+        <FontString name="$parent_EquipmentTitle" inherits="Game13Font" text="Equipment" justifyH="LEFT" justifyV="TOP">
+          <Anchors>
+            <Anchor point="TOPLEFT" relativeTo="$parent_BuffsList" relativePoint="BOTTOMLEFT" />
+          </Anchors>
+        </FontString>
+        <FontString name="$parent_EquipmentTotal" inherits="Game13Font" text="0%" justifyH="RIGHT" justifyV="TOP">
+          <Anchors>
+            <Anchor point="TOPRIGHT" relativeTo="$parent_BuffsListTotal" relativePoint="BOTTOMRIGHT" />
+          </Anchors>
+        </FontString>
+        <FontString name="$parent_EquipmentList" inherits="GameNormalNumberFont" text="Equipment List" justifyH="LEFT" justifyV="TOP">
+          <Anchors>
+            <Anchor point="TOPLEFT" relativeTo="BonusXP_Tooltip_EquipmentTitle" relativePoint="BOTTOMLEFT" x="0" y="-5" />
+          </Anchors>
+        </FontString>
+        <FontString name="$parent_EquipmentListTotal" inherits="GameNormalNumberFont" text="10%" justifyH="RIGHT" justifyV="TOP">
+          <Anchors>
+            <Anchor point="TOPRIGHT" relativeTo="$parent_EquipmentTotal" relativePoint="BOTTOMRIGHT" x="0" y="-5" />
+          </Anchors>
+        </FontString>
+        <FontString name="$parent_RAFTitle" inherits="Game13Font" text="Recruit-a-Friend" justifyH="LEFT" justifyV="TOP">
+          <Anchors>
+            <Anchor point="TOPLEFT" relativeTo="$parent_EquipmentList" relativePoint="BOTTOMLEFT" />
+          </Anchors>
+        </FontString>
+        <FontString name="$parent_RAFTotal" inherits="Game13Font" text="0%" justifyH="RIGHT" justifyV="TOP">
+          <Anchors>
+            <Anchor point="TOPRIGHT" relativeTo="$parent_EquipmentListTotal" relativePoint="BOTTOMRIGHT" />
+          </Anchors>
+        </FontString>
+        <FontString name="$parent_Total" inherits="Game15Font" text="" justifyH="RIGHT" justifyV="TOP">
+          <Anchors>
+            <Anchor point="TOPRIGHT" relativeTo="$parent_RAFTotal" relativePoint="BOTTOMRIGHT" y="-15"/>
+          </Anchors>
+        </FontString>
+      </Layer>
+    </Layers>
+  </Frame>
+</Ui>

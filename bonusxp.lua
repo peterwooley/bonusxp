@@ -31,8 +31,8 @@ local isCurrentRAFBonusActive;
 local lineHeight = 15;
 local gapLineHeight = 5;
 
-local button;
-local tooltip;
+local button = BonusXP_InventoryButton;
+local tooltip = BonusXP_Tooltip;
 local fontFRIZQT;
 local valColor = "ffffffff";
 local forceCalculateEquipment = false;
@@ -301,8 +301,8 @@ function BonusXP:initialize(f)
 	local rafdy = isCurrentRAFBonusActive and (lineHeight + gapLineHeight) or 0;
 	local shortHeight = BonusXP:getShortHeight();
 	local fullHeight = BonusXP:getFullHeight();
-	f:SetHeight(BonusXPConfig.collapsed and fullHeight or shortHeight);
-	
+
+  --BonusXP_Tooltip_BuffTitle:SetText("Buffs");
 	f.shortLine = BonusXP:createLabel(f, 10, linePositions[0]);
 	f.RafXpBonus = BonusXP:createLabel(f, 10, linePositions[0]);
 	f.equipXpBonus = BonusXP:createLabel(f, 10, linePositions[0]-rafdy);
@@ -330,31 +330,39 @@ function BonusXP:registerEvents(frame)
 	frame:RegisterEvent("PLAYER_REGEN_ENABLED");
 
 	BonusXP.elapsedTimer = 1;
-	frame:SetScript("OnUpdate", function (self, elapsed)
-		BonusXP.elapsedTimer = BonusXP.elapsedTimer + elapsed;
-		if BonusXP.elapsedTimer < 0.1 then return end
-		
-		local isRafQuestBonusActive, isRafKillBonusActive, closeMemberCount, closeFriendCount = BonusXP:getGroupInfo();
-		
-		local isRAFBonusActive = isRafQuestBonusActive or isRafKillBonusActive;
-		local isRAFStateChanged = isCurrentRAFBonusActive ~= isRAFBonusActive;
-		isCurrentRAFBonusActive = isRAFBonusActive;
-		
-		equipXpBonus.totalKill = equipXpBonus.kill + (not isRafKillBonusActive and heirloomXpBonus.kill or 0);
-		equipXpBonus.totalQuest = equipXpBonus.quest + (not isRafQuestBonusActive and heirloomXpBonus.quest or 0);
-		
-		rafBonus.killActive = isRafKillBonusActive and rafBonus.kill or 0;
-		rafBonus.questActive = isRafQuestBonusActive and rafBonus.quest or 0;
-		
-		local isRestBonusActive = xpExhaustion > 0;
-		local xpBaseModBonusKill = (100 + equipXpBonus.totalKill + auraXpBonus.kill) / 100; 
-		xpBonusKill = (xpBaseModBonusKill / closeMemberCount) * (1 + 0.1078 * (closeMemberCount-1)) * (isRestBonusActive and 2 or ((100 + rafBonus.killActive) / 100)) * 100 - 100;
-		xpBonusQuest = (100 + equipXpBonus.totalQuest + auraXpBonus.quest) * (100 + rafBonus.questActive) / 100 - 100;
-		
-		BonusXP:updateFrameTextPositions(self, isRAFStateChanged);
-		BonusXP:updateFrameText(self);
-		BonusXP.elapsedTimer = 0;
-	end);
+  button:SetScript("OnUpdate", BonusXP.onUpdate);
+end
+
+BonusXP_UpdateInterval = 1.0;
+function BonusXP:onUpdate(elapsed)
+  BonusXP.elapsedTimer = BonusXP.elapsedTimer + elapsed;
+  if BonusXP.elapsedTimer < BonusXP_UpdateInterval then return end
+
+  local isRafQuestBonusActive, isRafKillBonusActive, closeMemberCount, closeFriendCount = BonusXP:getGroupInfo();
+
+  local isRAFBonusActive = isRafQuestBonusActive or isRafKillBonusActive;
+  local isRAFStateChanged = isCurrentRAFBonusActive ~= isRAFBonusActive;
+  isCurrentRAFBonusActive = isRAFBonusActive;
+
+  equipXpBonus.totalKill = equipXpBonus.kill + (not isRafKillBonusActive and heirloomXpBonus.kill or 0);
+  equipXpBonus.totalQuest = equipXpBonus.quest + (not isRafQuestBonusActive and heirloomXpBonus.quest or 0);
+
+  rafBonus.killActive = isRafKillBonusActive and rafBonus.kill or 0;
+  rafBonus.questActive = isRafQuestBonusActive and rafBonus.quest or 0;
+
+  local isRestBonusActive = xpExhaustion > 0;
+  local xpBaseModBonusKill = (100 + equipXpBonus.totalKill + auraXpBonus.kill) / 100; 
+  xpBonusKill = (xpBaseModBonusKill / closeMemberCount) * (1 + 0.1078 * (closeMemberCount-1)) * (isRestBonusActive and 2 or ((100 + rafBonus.killActive) / 100)) * 100 - 100;
+  xpBonusQuest = (100 + equipXpBonus.totalQuest + auraXpBonus.quest) * (100 + rafBonus.questActive) / 100 - 100;
+
+  BonusXP:updateFrameTextPositions(tooltip, isRAFStateChanged);
+  BonusXP:updateFrameText(tooltip);
+  BonusXP:updateTooltipHeight();
+  BonusXP.elapsedTimer = 0;
+end
+
+function BonusXP:updateTooltipHeight()
+  tooltip:SetHeight(tooltip:GetTop() - BonusXP_Tooltip_Total:GetBottom() + 10);
 end
 
 
@@ -691,38 +699,42 @@ function BonusXP:updateFrameTextPositions(f, isRAFStateChanged)
 end
 
 function BonusXP:updateFrameText(f)
-	if not BonusXPConfig.collapsed then
-		f.RafXpBonus:SetText("RAF bonus. Kill: ".. rafBonus.killActive .. "%, Quest: ".. rafBonus.questActive .. "%" );
-		f.equipXpBonus:SetText("Equipment bonus. Kill: ".. equipXpBonus.totalKill .. "%, Quest: ".. equipXpBonus.totalQuest .. "%" );
-		f.auraXpBonus:SetText("Aura bonus. Kill: ".. auraXpBonus.kill .. "%, Quest: ".. auraXpBonus.quest .. "%");
-		f.totalQuestXpBonus:SetText("Total. Quest bonus: |c"..valColor.. xpBonusQuest .. "%|r");
-	end
-	
-	BonusXP:updateXPText(f);
-  updateButton(xpBonusQuest);
+  BonusXP_Tooltip_BuffsTotal:SetText(auraXpBonus.quest .. "%");
+  BonusXP_Tooltip_EquipmentTotal:SetText(equipXpBonus.totalQuest .. "%");
+  BonusXP_Tooltip_Total:SetText("Total Bonus XP: " .. xpBonusQuest .. "%");
+
+  if isCurrentRAFBonusActive then
+    BonusXP_Tooltip_RAFTitle:Show();
+    BonusXP_Tooltip_RAFTotal:SetText(((1+rafBonus.questActive/100)*(auraXpBonus.quest+100))-auraXpBonus.quest-100  .. "%");
+    BonusXP_Tooltip_RAFTotal:Show();
+  else
+    BonusXP_Tooltip_RAFTitle:Hide();
+    BonusXP_Tooltip_RAFTotal:Hide();
+  end
+	BonusXP:updateBuffText();
+  updateButton();
 end
 
 function BonusXP:updateXPExhaustion(f)
 	local isRestBonusActive = xpExhaustion > 0; 
 	local killBonus = xpBonusKill;
 	
-	if not BonusXPConfig.collapsed then
-		f.totalKillXpBonus:SetText("Total. Kill bonus: |c"..valColor..killBonus .. "%|r" );
-	
-		f.XPexhaustion:SetText("XPExhaustion: |c"..valColor.. xpExhaustion .."|r");
-	else
-		f.shortLine:SetText(string.format("Lvl: |c%s%d|r, K: |c%s%.1f%%|r, Q: |c%s%.1f%%|r, exH: |c%s%d|r", valColor, playerLevel, valColor, killBonus, valColor, xpBonusQuest, valColor, xpExhaustion));
-	end
+  f.shortLine:SetText(string.format("Lvl: |c%s%d|r, K: |c%s%.1f%%|r, Q: |c%s%.1f%%|r, exH: |c%s%d|r", valColor, playerLevel, valColor, killBonus, valColor, xpBonusQuest, valColor, xpExhaustion));
 	
 	return XPExhaustion;
 end
 
-function BonusXP:updateXPText(f)
-  local text = "";
+function BonusXP:updateBuffText()
+  local names, values = "", "";
   for i=1, #auras do
-    text = text .. string.format("%s: %s%%\r", auras[i].name, auras[i].questBonus);
+    names = names .. string.format("%s\r", auras[i].name);
+    values = values .. string.format("%s%%\r", auras[i].questBonus);
   end
-  f.shortXpLine:SetText(text);
+
+
+
+  BonusXP_Tooltip_BuffsList:SetText(names);
+  BonusXP_Tooltip_BuffsListTotal:SetText(values);
 end
 
 function BonusXP:onLaterLoading(self)
@@ -742,6 +754,8 @@ function BonusXP:onPlayerReady(self, event, arg1)
 	BonusXP:refreshEquipData();
 	BonusXP:refreshSpellData();
 	BonusXP:updateGearInfo();
+  
+  updateButton();
 	
 end
 
@@ -782,7 +796,6 @@ function BonusXP:onEventHandler(self, event, ...)
 	elseif event == "ADDON_LOADED" and arg1=="BonusXP" then 
 		BonusXP:onLaterLoading(self);
 		
-		print("XP Bonus Counter Loaded!");
 		self:UnregisterEvent("ADDON_LOADED");
 	elseif event == "PLAYER_LEVEL_UP" then
 		playerLevel = arg1 or UnitLevel("player");
@@ -865,12 +878,7 @@ end
 
 function BonusXP:createMainFrame()
 
-  button = CreateFrame("Button", "BonusXPButton", CharacterStatsPane, "UIPanelButtonGrayTemplate")
-  button:SetHeight(20)
-  button:SetWidth(110)
   button:SetText("Bonus XP")
-  button:ClearAllPoints()
-  button:SetPoint("BOTTOMLEFT", 10, 10)
 	button:SetScript("OnEnter", function() 
     tooltip:Show();
 	end);
@@ -878,13 +886,7 @@ function BonusXP:createMainFrame()
     tooltip:Hide();
 	end);
 
-	tooltip = CreateFrame("Frame","BonusXPTooltip", button, "TooltipBorderedFrameTemplate");
-  tooltip:SetPoint("TOPLEFT", 0, -20);
-  tooltip:SetFrameStrata("TOOLTIP");
   f = tooltip;
-	
-	local cpColor, alpha, cpBackColor = 18/255, 230/255, 26/255;
-	
 	f:Hide();
 	
 	f:RegisterEvent("ADDON_LOADED");
@@ -896,13 +898,10 @@ function BonusXP:createMainFrame()
 	f:SetScript("OnEvent", function(self, ...)
 		BonusXP:onEventHandler(f, ...);
 	end);
-
-
-	return f;
 end
 
-function updateButton(total)
-  button:SetText(string.format("Bonus XP: %s%%\r", total));
+function updateButton()
+  button:SetText(string.format("Bonus XP: %s%%\r", xpBonusQuest));
 end
 
 function BonusXP:createLabel(f, ...)
