@@ -1,0 +1,11 @@
+## Interface: 80300
+## Title: Bonus XP
+## Notes: See your bonus XP in real-time
+## Author: peterwooley
+## Version: 0.0.2-alpha
+## LoadOnDemand: 0
+## DefaultState: enabled
+## SavedVariables: BonusXP
+
+BonusXP.xml
+BonusXP.lua

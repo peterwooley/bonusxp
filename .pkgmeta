@@ -1,0 +1,7 @@
+package-as: BonusXP
+ignore:
+    - logo
+    - Makefile
+    - README.md
+    - release
+    - screenshot.png
