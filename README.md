@@ -1,4 +1,7 @@
 # Bonus XP Add-On
+
+[![Build Status](https://travis-ci.com/peterwooley/bonusxp.svg?branch=master)](https://travis-ci.com/peterwooley/bonusxp)
+
 How much Bonus XP are you earning? Do you have Heirloom gear? Are you using Recruit-a-Friend? Is there a Bonus XP event taking place?
 
 Now you'll know!
@@ -9,6 +12,7 @@ Open the Character screen (C) and find your Bonus XP percentage at the bottom of
 
 ## Thanks
 Thanks to the folks who help test:
+
 * [Kezri](https://worldofwarcraft.com/en-us/character/us/silver-hand/Kezri)
 * [Lithiana](https://worldofwarcraft.com/en-us/character/us/silver-hand/lithiana/)
 * [Keyaenlord](https://worldofwarcraft.com/en-us/character/us/silver-hand/Keyaenlord)
