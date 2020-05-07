@@ -11,3 +11,6 @@ build: clean
 
 clean:
 	rm -rf $(BUILD_DIR)
+
+test:
+	luacheck .

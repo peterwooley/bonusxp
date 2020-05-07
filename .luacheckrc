@@ -1,7 +1,8 @@
 std = "lua51"
 max_line_length = false
 exclude_files = {
-	".luacheckrc"
+	".luacheckrc",
+  "release"
 }
 ignore = {
   "113", -- Accessing an undefiend global variable
