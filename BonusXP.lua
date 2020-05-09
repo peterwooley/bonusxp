@@ -559,7 +559,9 @@ function BonusXP:calculateEquipment()
 						heirloomXpBonus.kill = heirloomXpBonus.kill + xpBonus.kill;
 					end
 
-          equipment[#equipment+1] = { name = GetItemInfo(itemId), id = itemId, questBonus = xpBonus.quest, killBonus = xpBonus.kill };
+          if xpBonus.quest > 0 then
+            equipment[#equipment+1] = { name = GetItemInfo(itemId), id = itemId, questBonus = xpBonus.quest, killBonus = xpBonus.kill };
+          end
 				end
 			end
 
