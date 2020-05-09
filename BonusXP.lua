@@ -25,7 +25,8 @@ local awaitingHeirloomData = {};
 
 local xpProgress, xpLeft = 0,0;
 
-local isCurrentRAFBonusActive;
+local isRAFStateChanged;
+local isCurrentRAFBonusActive = false;
 
 
 local button = BonusXP_InventoryButton;
@@ -127,7 +128,7 @@ BonusXP.slotItemIdMap = {
 	[INVSLOT_TABARD]	= nil,
 };
 
-BonusXP.elapsedTimer = 0;
+BonusXP.elapsedTimer = 1;
 
 local function xpTrinketGetPvpZoneBonus(id)
 	if isInPvPInstance and ( id == 126948 or id == 126949 ) then
@@ -287,7 +288,7 @@ function BonusXP:onUpdate(elapsed)
   local isRafQuestBonusActive, isRafKillBonusActive, closeMemberCount, closeFriendCount = BonusXP:getGroupInfo();
 
   local isRAFBonusActive = isRafQuestBonusActive or isRafKillBonusActive;
-  local isRAFStateChanged = isCurrentRAFBonusActive ~= isRAFBonusActive;
+  isRAFStateChanged = isCurrentRAFBonusActive ~= isRAFBonusActive;
   isCurrentRAFBonusActive = isRAFBonusActive;
 
   equipXpBonus.totalQuest = equipXpBonus.quest + (not isRafQuestBonusActive and heirloomXpBonus.quest or 0);
@@ -600,20 +601,46 @@ end
 
 function BonusXP:updateTooltipText()
   BonusXP_Tooltip_BuffsTotal:SetText(auraXpBonus.quest .. "%");
-  BonusXP_Tooltip_EquipmentTotal:SetText(equipXpBonus.totalQuest .. "%");
   BonusXP_Tooltip_Total:SetText("Total Bonus XP: " .. xpBonusQuest .. "%");
 
   if isCurrentRAFBonusActive then
-    BonusXP_Tooltip_RAFTitle:Show();
-    BonusXP_Tooltip_RAFTotal:SetText(((1+rafBonus.questActive/100)*(auraXpBonus.quest+100))-auraXpBonus.quest-100  .. "%");
-    BonusXP_Tooltip_RAFTotal:Show();
+    BonusXP:showInactiveEquipmentText();
   else
-    BonusXP_Tooltip_RAFTitle:Hide();
-    BonusXP_Tooltip_RAFTotal:Hide();
+    BonusXP:showActiveEquipmentText();
   end
+
+  BonusXP:showRAFText();
 	BonusXP:updateBuffText();
-  BonusXP:updateEquipmentText();
   BonusXP:updateButton();
+end
+
+function BonusXP:showRAFText()
+  BonusXP_Tooltip_RAFTotal:SetText(((1+rafBonus.questActive/100)*(auraXpBonus.quest+100))-auraXpBonus.quest-100  .. "%");
+end
+
+function BonusXP:showInactiveEquipmentText()
+  BonusXP_Tooltip_EquipmentTitle:SetFontObject(Game13FontDisabled)
+
+  BonusXP_Tooltip_EquipmentTotal:SetFontObject(Game13FontDisabled)
+  BonusXP_Tooltip_EquipmentTotal:SetText("0%");
+
+  BonusXP_Tooltip_EquipmentList:SetFontObject(GameNormalNumberFontDisabled)
+  BonusXP_Tooltip_EquipmentList:SetText("(Inactive when Recruit-a-Friend is active.)\r");
+
+  BonusXP_Tooltip_EquipmentListTotal:SetFontObject(GameNormalNumberFontDisabled)
+  BonusXP_Tooltip_EquipmentListTotal:SetText("\r");
+end
+
+function BonusXP:showActiveEquipmentText()
+  BonusXP_Tooltip_EquipmentTitle:SetFontObject(Game13FontEnabled)
+
+  BonusXP_Tooltip_EquipmentTotal:SetFontObject(Game13FontEnabled)
+
+  BonusXP_Tooltip_EquipmentList:SetFontObject(GameNormalNumberFont)
+  BonusXP_Tooltip_EquipmentListTotal:SetFontObject(GameNormalNumberFont)
+
+  BonusXP_Tooltip_EquipmentTotal:SetText(equipXpBonus.totalQuest .. "%");
+  BonusXP:updateEquipmentText();
 end
 
 function BonusXP:updateBuffText()

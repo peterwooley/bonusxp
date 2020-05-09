@@ -14,3 +14,4 @@ clean:
 
 test:
 	luacheck .
+	xmllint --noout *.xml

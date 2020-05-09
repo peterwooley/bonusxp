@@ -1,4 +1,19 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\FrameXML\UI.xsd">
+
+  <!-- Font Definitions -->
+  <Font name="Game13FontDisabled" inherits="Game13Font" virtual="true">
+    <Color r="0.4" g="0.4" b="0.4"/>
+  </Font>
+
+  <Font name="Game13FontEnabled" inherits="Game13Font" virtual="true">
+    <Color r="1.0" g="1.0" b="1.0"/>
+  </Font>
+
+  <Font name="GameNormalNumberFontDisabled" inherits="GameNormalNumberFont" virtual="true">
+    <Color r="0.4" g="0.4" b="0.4"/>
+  </Font>
+
+  <!-- Main Button in Character Screen -->
   <Button name="BonusXP_InventoryButton" parent="CharacterStatsPane" inherits="UIPanelButtonGrayTemplate">
     <Size><AbsDimension x="120" y="20"/></Size>
     <Anchors>
@@ -8,6 +23,7 @@
     </Anchors>
   </Button>
 
+  <!-- Tooltip -->
   <Frame name="BonusXP_Tooltip" parent="BonusXP_InventoryButton" inherits="TooltipBorderedFrameTemplate" frameStrata="TOOLTIP">
     <Size><AbsDimension x="200" y="300"/></Size>
     <Anchors>
@@ -17,12 +33,12 @@
     </Anchors>
     <Layers>
       <Layer name="$parent_Buffs" parent="BonusXP_Tooltip">
-        <FontString name="$parent_BuffsTitle" inherits="Game13Font" text="Buffs" justifyH="LEFT" justifyV="TOP">
+        <FontString name="$parent_BuffsTitle" inherits="Game13FontEnabled" text="Buffs" justifyH="LEFT" justifyV="TOP">
           <Anchors>
             <Anchor point="TOPLEFT" relativeTo="BonusXP_Tooltip" x="10" y="-10" />
           </Anchors>
         </FontString>
-        <FontString name="$parent_BuffsTotal" inherits="Game13Font" text="100%" justifyH="RIGHT" justifyV="TOP">
+        <FontString name="$parent_BuffsTotal" inherits="Game13FontEnabled" text="100%" justifyH="RIGHT" justifyV="TOP">
           <Anchors>
             <Anchor point="TOPRIGHT" relativeTo="BonusXP_Tooltip" x="-10" y="-10" />
           </Anchors>
@@ -39,12 +55,12 @@
         </FontString>
       </Layer>
       <Layer name="$parent_Equipment">
-        <FontString name="$parent_EquipmentTitle" inherits="Game13Font" text="Equipment" justifyH="LEFT" justifyV="TOP">
+        <FontString name="$parent_EquipmentTitle" inherits="Game13FontEnabled" text="Equipment" justifyH="LEFT" justifyV="TOP">
           <Anchors>
             <Anchor point="TOPLEFT" relativeTo="$parent_BuffsList" relativePoint="BOTTOMLEFT" />
           </Anchors>
         </FontString>
-        <FontString name="$parent_EquipmentTotal" inherits="Game13Font" text="0%" justifyH="RIGHT" justifyV="TOP">
+        <FontString name="$parent_EquipmentTotal" inherits="Game13FontEnabled" text="0%" justifyH="RIGHT" justifyV="TOP">
           <Anchors>
             <Anchor point="TOPRIGHT" relativeTo="$parent_BuffsListTotal" relativePoint="BOTTOMRIGHT" />
           </Anchors>
@@ -59,12 +75,12 @@
             <Anchor point="TOPRIGHT" relativeTo="$parent_EquipmentTotal" relativePoint="BOTTOMRIGHT" x="0" y="-5" />
           </Anchors>
         </FontString>
-        <FontString name="$parent_RAFTitle" inherits="Game13Font" text="Recruit-a-Friend" justifyH="LEFT" justifyV="TOP">
+        <FontString name="$parent_RAFTitle" inherits="Game13FontEnabled" text="Recruit-a-Friend" justifyH="LEFT" justifyV="TOP">
           <Anchors>
             <Anchor point="TOPLEFT" relativeTo="$parent_EquipmentList" relativePoint="BOTTOMLEFT" />
           </Anchors>
         </FontString>
-        <FontString name="$parent_RAFTotal" inherits="Game13Font" text="0%" justifyH="RIGHT" justifyV="TOP">
+        <FontString name="$parent_RAFTotal" inherits="Game13FontEnabled" text="0%" justifyH="RIGHT" justifyV="TOP">
           <Anchors>
             <Anchor point="TOPRIGHT" relativeTo="$parent_EquipmentListTotal" relativePoint="BOTTOMRIGHT" />
           </Anchors>
