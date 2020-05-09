@@ -1,7 +1,7 @@
 BUILD_DIR = ./release
 FILES = BonusXP.*
 DIR_NAME = BonusXP
-VERSION = 1.0.0
+VERSION = 1.1.0
 
 build: clean
 	mkdir -p ./$(BUILD_DIR)/$(DIR_NAME)
