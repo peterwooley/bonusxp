@@ -25,7 +25,7 @@ local awaitingHeirloomData = {};
 
 local xpProgress, xpLeft = 0,0;
 
-local isRAFStateChanged;
+--local isRAFStateChanged;
 local isCurrentRAFBonusActive = false;
 
 
@@ -288,7 +288,7 @@ function BonusXP:onUpdate(elapsed)
   local isRafQuestBonusActive, isRafKillBonusActive, closeMemberCount, closeFriendCount = BonusXP:getGroupInfo();
 
   local isRAFBonusActive = isRafQuestBonusActive or isRafKillBonusActive;
-  isRAFStateChanged = isCurrentRAFBonusActive ~= isRAFBonusActive;
+  --isRAFStateChanged = isCurrentRAFBonusActive ~= isRAFBonusActive;
   isCurrentRAFBonusActive = isRAFBonusActive;
 
   equipXpBonus.totalQuest = equipXpBonus.quest + (not isRafQuestBonusActive and heirloomXpBonus.quest or 0);
