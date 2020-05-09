@@ -8,7 +8,8 @@ Now you'll know!
 
 Open the Character screen (C) and find your Bonus XP percentage at the bottom of the Character Stats pane. Hover over to see the buffs and equipment are contributing to your bonus.
 
-<img src="screenshot.png" alt="Bonus XP Add-On Tooltip">
+<img src="screenshots/default.png" alt="Bonus XP Add-On Tooltip">
+<img src="screenshots/raf.png" alt="Bonus XP Add-On with Recruit-a-Friend active">
 
 ## Thanks
 Thanks to the folks who help test:
