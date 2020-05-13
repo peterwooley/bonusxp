@@ -248,7 +248,7 @@ function BonusXP:getContinentId(event)
 	return mapInfo.mapID or currentPlayerContinent;
 end
 
-function BonusXP:initialize(f)
+function BonusXP:initialize()
 	playerLevel = UnitLevel("player");
 	maxRAFPlayerLevel = MAX_PLAYER_LEVEL_TABLE[GetMaximumExpansionLevel() - 1];
 	isRAFEnabled = C_RecruitAFriend.IsEnabled();
@@ -261,22 +261,23 @@ function BonusXP:initialize(f)
 
 	local isRafQuestBonusActive, isRafKillBonusActive = BonusXP:getGroupInfo();
 	isCurrentRAFBonusActive = isRafQuestBonusActive or isRafKillBonusActive;
-
-	BonusXP:registerEvents(f);
 end
 
-function BonusXP:registerEvents(frame)
-	frame:RegisterEvent("PLAYER_LEVEL_UP");
-	frame:RegisterEvent("ZONE_CHANGED_NEW_AREA");
-	frame:RegisterEvent("ZONE_CHANGED");
-	frame:RegisterEvent("ZONE_CHANGED_INDOORS");
-	frame:RegisterEvent("PLAYER_EQUIPMENT_CHANGED");
-	frame:RegisterEvent("GET_ITEM_INFO_RECEIVED");
-	frame:RegisterEvent("PLAYER_XP_UPDATE");
-	frame:RegisterEvent("PLAYER_REGEN_DISABLED");
-	frame:RegisterEvent("PLAYER_REGEN_ENABLED");
-
-  button:SetScript("OnUpdate", BonusXP.onUpdate);
+function BonusXP:registerEvents()
+	button:RegisterEvent("ADDON_LOADED");
+	button:RegisterEvent("PLAYER_LOGIN");
+	button:RegisterEvent("UNIT_AURA");
+	button:RegisterEvent("HEIRLOOMS_UPDATED");
+	button:RegisterEvent("PLAYER_LOGOUT");
+	button:RegisterEvent("PLAYER_LEVEL_UP");
+	button:RegisterEvent("ZONE_CHANGED_NEW_AREA");
+	button:RegisterEvent("ZONE_CHANGED");
+	button:RegisterEvent("ZONE_CHANGED_INDOORS");
+	button:RegisterEvent("PLAYER_EQUIPMENT_CHANGED");
+	button:RegisterEvent("GET_ITEM_INFO_RECEIVED");
+	button:RegisterEvent("PLAYER_XP_UPDATE");
+	button:RegisterEvent("PLAYER_REGEN_DISABLED");
+	button:RegisterEvent("PLAYER_REGEN_ENABLED");
 end
 
 local BonusXP_UpdateInterval = 1.0;
@@ -295,8 +296,10 @@ function BonusXP:onUpdate(elapsed)
 
   xpBonusQuest = (100 + equipXpBonus.totalQuest + auraXpBonus.quest) * (100 + rafBonus.questActive) / 100 - 100;
 
+  BonusXP:updateButton();
   BonusXP:updateTooltipText();
   BonusXP:updateTooltipSize();
+
   BonusXP.elapsedTimer = 0;
 end
 
@@ -600,50 +603,75 @@ function BonusXP:updateGearInfo()
 end
 
 function BonusXP:updateTooltipText()
-  BonusXP_Tooltip_BuffsTotal:SetText(auraXpBonus.quest .. "%");
-  BonusXP_Tooltip_Total:SetText("Total Bonus XP: " .. xpBonusQuest .. "%");
-
-  if isCurrentRAFBonusActive then
-    BonusXP:showInactiveEquipmentText();
-  else
-    BonusXP:showActiveEquipmentText();
-  end
-
-  BonusXP:showRAFText();
-	BonusXP:updateBuffText();
-  BonusXP:updateButton();
-end
-
-function BonusXP:showRAFText()
-  BonusXP_Tooltip_RAFTotal:SetText(((1+rafBonus.questActive/100)*(auraXpBonus.quest+100))-auraXpBonus.quest-100  .. "%");
-end
-
-function BonusXP:showInactiveEquipmentText()
-  BonusXP_Tooltip_EquipmentTitle:SetFontObject(Game13FontDisabled)
-
-  BonusXP_Tooltip_EquipmentTotal:SetFontObject(Game13FontDisabled)
-  BonusXP_Tooltip_EquipmentTotal:SetText("0%");
-
-  BonusXP_Tooltip_EquipmentList:SetFontObject(GameNormalNumberFontDisabled)
-  BonusXP_Tooltip_EquipmentList:SetText("(Inactive when Recruit-a-Friend is active.)\r");
-
-  BonusXP_Tooltip_EquipmentListTotal:SetFontObject(GameNormalNumberFontDisabled)
-  BonusXP_Tooltip_EquipmentListTotal:SetText("\r");
-end
-
-function BonusXP:showActiveEquipmentText()
-  BonusXP_Tooltip_EquipmentTitle:SetFontObject(Game13FontEnabled)
-
-  BonusXP_Tooltip_EquipmentTotal:SetFontObject(Game13FontEnabled)
-
-  BonusXP_Tooltip_EquipmentList:SetFontObject(GameNormalNumberFont)
-  BonusXP_Tooltip_EquipmentListTotal:SetFontObject(GameNormalNumberFont)
-
-  BonusXP_Tooltip_EquipmentTotal:SetText(equipXpBonus.totalQuest .. "%");
+  BonusXP:updateBuffText();
   BonusXP:updateEquipmentText();
+  BonusXP:updateRAFText();
+  BonusXP_Tooltip_Total:SetText("Total Bonus XP: " .. xpBonusQuest .. "%");
 end
 
 function BonusXP:updateBuffText()
+  local title = BonusXP_Tooltip_BuffsTitle;
+  local total = BonusXP_Tooltip_BuffsTotal;
+  if auraXpBonus.quest > 0 then
+    title:SetFontObject(Game13Font)
+    total:SetFontObject(Game13Font)
+  else
+    title:SetFontObject(Game13FontDisabled)
+    total:SetFontObject(Game13FontDisabled)
+  end
+
+  total:SetText(auraXpBonus.quest .. "%");
+	BonusXP:updateBuffListText();
+end
+
+function BonusXP:updateRAFText()
+  local title = BonusXP_Tooltip_RAFTitle;
+  local total = BonusXP_Tooltip_RAFTotal;
+  if isCurrentRAFBonusActive then
+    title:SetFontObject(Game13Font)
+    total:SetFontObject(Game13Font)
+  else
+    title:SetFontObject(Game13FontDisabled)
+    total:SetFontObject(Game13FontDisabled)
+  end
+
+  BonusXP_Tooltip_RAFTotal:SetText(((1+rafBonus.questActive/100)*(auraXpBonus.quest+100))-auraXpBonus.quest-100  .. "%");
+end
+
+function BonusXP:updateEquipmentText()
+  local title = BonusXP_Tooltip_EquipmentTitle;
+  local total = BonusXP_Tooltip_EquipmentTotal;
+  local equipmentList = BonusXP_Tooltip_EquipmentList;
+  local equipmentListTotal = BonusXP_Tooltip_EquipmentListTotal;
+
+  BonusXP:updateEquipmentListText();
+
+  if isCurrentRAFBonusActive or equipXpBonus.totalQuest == 0 then
+    title:SetFontObject(Game13FontDisabled)
+
+    total:SetFontObject(Game13FontDisabled)
+    total:SetText("0%");
+
+    if isCurrentRAFBonusActive then
+      equipmentList:SetFontObject(GameNormalNumberFontDisabled)
+      equipmentList:SetText("(Inactive when Recruit-a-Friend is active.)\r");
+
+      equipmentListTotal:SetFontObject(GameNormalNumberFontDisabled)
+      equipmentListTotal:SetText("\r");
+    end
+  else
+    title:SetFontObject(Game13FontEnabled)
+
+    total:SetFontObject(Game13FontEnabled)
+    total:SetText(equipXpBonus.totalQuest .. "%");
+
+    equipmentList:SetFontObject(GameNormalNumberFont)
+    equipmentListTotal:SetFontObject(GameNormalNumberFont)
+  end
+
+end
+
+function BonusXP:updateBuffListText()
   local names, values = "", "";
   for i=1, #auras do
     names = names .. string.format("%s\r", auras[i].name);
@@ -654,7 +682,7 @@ function BonusXP:updateBuffText()
   BonusXP_Tooltip_BuffsListTotal:SetText(values);
 end
 
-function BonusXP:updateEquipmentText()
+function BonusXP:updateEquipmentListText()
   local names, values = "", "";
   for i=1, #equipment do
     names = names .. string.format("%s\r", equipment[i].name);
@@ -677,7 +705,7 @@ function BonusXP:onPlayerReady(self, event, arg1)
 	if isPlayerReadyFired then return end
 	isPlayerReadyFired = true;
 
-	BonusXP:initialize(self);
+	BonusXP:initialize();
 
 	BonusXP:refreshEquipData();
 	BonusXP:refreshSpellData();
@@ -802,7 +830,7 @@ function BonusXP:readFullItemData(itemLink)
 	return item;
 end
 
-function BonusXP:createMainFrame()
+function BonusXP:setup()
 
   button:SetText("Bonus XP")
 	button:SetScript("OnEnter", function()
@@ -812,16 +840,13 @@ function BonusXP:createMainFrame()
     tooltip:Hide();
 	end);
 
-  local f = tooltip;
-	f:Hide();
+	tooltip:Hide();
 
-	f:RegisterEvent("ADDON_LOADED");
-	f:RegisterEvent("PLAYER_LOGIN");
-	f:RegisterEvent("UNIT_AURA");
-	f:RegisterEvent("HEIRLOOMS_UPDATED");
-	f:RegisterEvent("PLAYER_LOGOUT");
+  BonusXP:registerEvents();
 
-	f:SetScript("OnEvent", function(self, ...)
+  button:SetScript("OnUpdate", BonusXP.onUpdate);
+
+  button:SetScript("OnEvent", function(self, ...)
 		BonusXP:onEventHandler(f, ...);
 	end);
 end
@@ -897,4 +922,4 @@ if not _G.strsplit then
 	end
 end
 
-BonusXP:createMainFrame();
+BonusXP:setup();
