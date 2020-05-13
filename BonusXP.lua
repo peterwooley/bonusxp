@@ -17,8 +17,6 @@ local isPlayerReadyFired = false;
 local isEquipmentChanged = false;
 local awaitingData = {};
 local awaitingHeirloomData = {};
--- TODO Remove
-local xpProgress, xpLeft = 0,0;
 local isCurrentRAFBonusActive = false;
 local button = BonusXP_InventoryButton;
 local tooltip = BonusXP_Tooltip;
@@ -135,7 +133,6 @@ local itemAuraXPInfo = {
 
 local xpNoExperience = { isBlockXPGainAura = true };
 local xpLegionInvasion = { questId=2 };
-local xpEnlisted = { questId=5 };
 local function xpBfaGetZoneBonus(self, auraInfo)
 	local res = {
 		quest = self.quest or self.questId and auraInfo[15 + self.questId] or 0
@@ -151,47 +148,46 @@ local function xpBfaGetZoneBonus(self, auraInfo)
 end;
 
 local SpellXPInfo = {
-  [326419]  = { questId=1 },   -- "Winds of Wisdom"
-	[269083]	= xpEnlisted,                   -- War mode
-	[130283]	= { questId=1 }, 	-- "Enlightenment" 50% Monk
-	[127250]	= { questId=1 }, 	-- "Ancient Knowledge" 300%
-	[277952]	= { questId=3 },	  	-- "WoW's 14th Anniversary"
-	[46668]		= { questId=2 },	  	-- "WHEE!" Darkmoon Carusel
-	[281561]	= xpNoExperience,			        	-- = "Uncontested" ???  Zero all xpBonus and add -100%
-	[212846]	= { questId=2 },  		-- "The Council's Wisdom" 5%
-	[290340]	= { questId=2 },  		-- "Taste of Victory" 10%
+  [326419]  = { questId=1 },    -- "Winds of Wisdom" 100%
+	[269083]	= { questId=5 },    -- "War Mode"
+	[289954]	= { questId=1 },    -- "War Mode" (Alliance-specific in Stormwind)
+	[282559]	= { questId=1 },    -- "War Mode" (Horde-specific in Orgrimmar)
+	[130283]	= { questId=1 },    -- "Enlightenment" 50% Monk
+	[127250]	= { questId=1 },    -- "Ancient Knowledge" 300%
+	[277952]	= { questId=3 },	 	-- "WoW's 14th Anniversary"
+	[46668]		= { questId=2 },	 	-- "WHEE!" Darkmoon Carusel
+	[281561]	= xpNoExperience,	 	-- = "Uncontested" -100%
+	[212846]	= { questId=2 },  	-- "The Council's Wisdom" 5%
+	[290340]	= { questId=2 },  	-- "Taste of Victory" 10%
 	[189375]	= { questId=1 },	  -- "Rapid Mind" 300%
-	[292242]	= xpNoExperience,				        -- "No Experience" -100%
-	[262759]	= xpNoExperience,				        -- "No Experience" -100%
-	[217514]	= xpLegionInvasion,				      -- "Legion Invasion" -90%
-	[218273]	= xpLegionInvasion,
-	[218285]	= xpLegionInvasion,
-	[218336]	= xpLegionInvasion,
-	[218337]	= xpLegionInvasion,
-	[227520]	= xpLegionInvasion,
-	[227521]	= xpLegionInvasion,
-	[86963]		= { questId=1 },				      -- "Learning by Example" 10%
-	[91991]		= { questId=2 },		  -- "Juju Instinct" 5%
-	[186334]	= { questId=1 },		  -- "Honored Champion" 50% PvP Exp
-	[171333]	= { questId=2 },	-- "Garrison Ability Override" 20%
-	[171334]	= { questId=2 },	-- "Garrison Ability Override" 20%
-	[78631]		= { questId=1 },	-- "Fast Track (Rank 1)" 5% Guild Perk
-	[78632]		= { questId=1 },	-- "Fast Track (Rank 2)" 10% Guild Perk
-	[146929]	= { questId=1 }, 	-- "Enduring Elixir of Wisdom" 100% (Mage-only)
-	[289982]	= { questId=3 },		  -- "Draught of Ten Lands" 10%
-	[136583]	= { questId=2 },	  	-- "Darkmoon Top Hat" 10%
-	[85617]		= { questId=2 },	  	-- "Argus' Journal" 2%
-	[178119]	= { questId=1 },	-- "Accelerated Learning" 20%
-	[210072]	= { questId=1 },			      	-- "_JKL - live update crash test 2" -100%
-	[230272]	= xpNoExperience,		        		-- Stranglethorn Streaker
+	[292242]	= xpNoExperience,	  -- "No Experience" -100%
+	[262759]	= xpNoExperience,	  -- "No Experience" -100%
+	[217514]	= xpLegionInvasion, -- "Legion Invasion" -90%
+	[218273]	= xpLegionInvasion, -- "Legion Invasion" -90%
+	[218285]	= xpLegionInvasion, -- "Legion Invasion" -90%
+	[218336]	= xpLegionInvasion, -- "Legion Invasion" -90%
+	[218337]	= xpLegionInvasion, -- "Legion Invasion" -90%
+	[227520]	= xpLegionInvasion, -- "Legion Invasion" -90%
+	[227521]	= xpLegionInvasion, -- "Legion Invasion" -90%
+	[86963]		= { questId=1 },    -- "Learning by Example" 10%
+	[91991]		= { questId=2 },	  -- "Juju Instinct" 5%
+	[186334]	= { questId=1 },	  -- "Honored Champion" 50% PvP Exp
+	[171333]	= { questId=2 },	  -- "Garrison Ability Override" 20%
+	[171334]	= { questId=2 },  	-- "Garrison Ability Override" 20%
+	[78631]		= { questId=1 },  	-- "Fast Track (Rank 1)" 5% Guild Perk
+	[78632]		= { questId=1 },  	-- "Fast Track (Rank 2)" 10% Guild Perk
+	[146929]	= { questId=1 },  	-- "Enduring Elixir of Wisdom" 100% (Mage-only)
+	[289982]	= { questId=3 },	  -- "Draught of Ten Lands" 10%
+	[136583]	= { questId=2 },  	-- "Darkmoon Top Hat" 10%
+	[85617]		= { questId=2 },  	-- "Argus' Journal" 2%
+	[178119]	= { questId=1 },  	-- "Accelerated Learning" 20%
+	[210072]	= { questId=1 },   	-- "_JKL - live update crash test 2" -100%
+	[230272]	= xpNoExperience,		-- Stranglethorn Streaker -100%
 
 	-- Next two auras have tooltip with 10% XP bonus but no XP bonus value provided
 	[290337]	= { questId=2, getBonus = xpBfaGetZoneBonus },		-- "Taste of Victory" 10%
 	[292137]	= { questId=2, getBonus = xpBfaGetZoneBonus },		-- "Taste of Victory" 10%
 
-	-- Next two capital-auras look like bugged. It displays bonus but not apply it to end expierence.
-	[289954]	= xpEnlisted, 					        -- "War mode Alliance in Stormwind"  Bugged?
-	[282559]	= xpEnlisted, 					        -- "War mode Horde in Orgrimmar"     Bugged?
 };
 
 local AnniversaryId = nil;
@@ -227,8 +223,8 @@ function BonusXP:initialize()
 	local _, instanceType = IsInInstance();
 	isInPvPInstance = instanceType=="pvp" or instanceType=="arena";
 
-	local isRafQuestBonusActive, isRafKillBonusActive = BonusXP:getGroupInfo();
-	isCurrentRAFBonusActive = isRafQuestBonusActive or isRafKillBonusActive;
+	local isRafQuestBonusActive, _ = BonusXP:getGroupInfo();
+	isCurrentRAFBonusActive = isRafQuestBonusActive;
 end
 
 function BonusXP:registerEvents()
@@ -285,8 +281,7 @@ end
 
 function BonusXP:getSpInfoBonus(spinfo, sr)
 	return spinfo.getBonus and spinfo.getBonus(spinfo, sr) or {
-		quest = spinfo.quest or spinfo.questId and sr[15 + spinfo.questId] or 0,
-		kill = spinfo.kill or spinfo.killId and sr[15 + spinfo.killId] or 0
+		quest = spinfo.quest or spinfo.questId and sr[15 + spinfo.questId] or 0
 	};
 end
 
@@ -432,7 +427,7 @@ function BonusXP:refreshSpellData()
 			isAnniversaryFound = bonus.isAnniversary or isAnniversaryFound;
 
       if bonus.quest > 0 then
-          auras[#auras+1] = { name = name, id = spellId, questBonus = bonus.quest, killBonus = bonus.kill };
+          auras[#auras+1] = { name = name, id = spellId, questBonus = bonus.quest };
       end
 
 			auraXpBonus.quest = auraXpBonus.quest + bonus.quest;
