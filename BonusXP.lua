@@ -1,37 +1,27 @@
 ﻿local _G = _G
 local _, BonusXP = ...
 local playerFaction, _ = UnitFactionGroup("player");
-
-
 local playerLevel = UnitLevel("player");
 local playerLanguage = "en";
-
 local xpBonusQuest = 0;
---local xpBonusKill = 0;
-
-local equipXpBonus = {kill=0, quest=0};
-local auraXpBonus = {kill=0, quest=0};
+local equipXpBonus = {quest=0};
+local auraXpBonus = {quest=0};
 local auras = {};
 local equipment = {};
-local heirloomXpBonus = {kill=0, quest=0};
+local heirloomXpBonus = {quest=0};
 
-local xpBonus5, xpBonus10, rafBonus = { quest = 5, kill = 5 }, { quest = 10, kill = 10 }, { kill=50, quest=50 };
+local xpBonus5, xpBonus10, rafBonus = { quest = 5 }, { quest = 10 }, { quest=50 };
 local Heirloom5, Heirloom10, Rubellite5, Heirloom50PvPInstance = 71354, 57353, 258645, 186334;
 
 local isPlayerReadyFired = false;
 local isEquipmentChanged = false;
 local awaitingData = {};
 local awaitingHeirloomData = {};
-
+-- TODO Remove
 local xpProgress, xpLeft = 0,0;
-
 local isCurrentRAFBonusActive = false;
-
-
 local button = BonusXP_InventoryButton;
 local tooltip = BonusXP_Tooltip;
-local fontFRIZQT;
-local valColor = "ffffffff";
 local forceCalculateEquipment = false;
 local forceUpdateGearInfo = false;
 local bfaMapBonusIds = {
@@ -50,8 +40,7 @@ local currentPlayerZoneId = -1;
 local currentPlayerContinent = -1;
 local isInPvPInstance = nil;
 local currentUiMapID = nil;
-local equipItemData = {
-};
+local equipItemData = {};
 
 BonusXP.equipAllSlots = {
 	INVSLOT_AMMO,
@@ -131,9 +120,9 @@ BonusXP.elapsedTimer = 1;
 
 local function xpTrinketGetPvpZoneBonus(id)
 	if isInPvPInstance and ( id == 126948 or id == 126949 ) then
-		return { quest = 50, kill = 50 };
+		return { quest = 50 };
 	else
-		return { quest = 0, kill = 0 };
+		return { quest = 0 };
 	end
 end;
 
@@ -145,18 +134,16 @@ local itemAuraXPInfo = {
 };
 
 local xpNoExperience = { isBlockXPGainAura = true };
-local xpLegionInvasion = { killId=1, questId=2 };
-local xpEnlisted = { killId=4, questId=5 };
+local xpLegionInvasion = { questId=2 };
+local xpEnlisted = { questId=5 };
 local function xpBfaGetZoneBonus(self, auraInfo)
 	local res = {
-		quest = self.quest or self.questId and auraInfo[15 + self.questId] or 0,
-		kill = self.kill or self.killId and auraInfo[15 + self.killId] or 0
+		quest = self.quest or self.questId and auraInfo[15 + self.questId] or 0
 	};
 
-	if res.quest == 0 and res.kill == 0 then
+	if res.quest == 0 then
 		if bfaMapBonusIds[currentPlayerContinent] then
 			res.quest = 10;
-			res.kill = 10;
 		end
 	end
 
@@ -164,17 +151,16 @@ local function xpBfaGetZoneBonus(self, auraInfo)
 end;
 
 local SpellXPInfo = {
-  [326419]  = { questId = 1, killId = 2},   -- "Winds of Wisdom"
+  [326419]  = { questId=1 },   -- "Winds of Wisdom"
 	[269083]	= xpEnlisted,                   -- War mode
-	[130283]	= { questId = 1, killId = 2}, 	-- "Enlightenment" 50% Monk
-	[127250]	= { questId = 1, killId = 2}, 	-- "Ancient Knowledge" 300%
-	[155755]	= { killId = 1 },			        	-- "Apexis Charge" 10%
-	[277952]	= { killId=1, questId=3 },	  	-- "WoW's 14th Anniversary"
-	[46668]		= { killId=1, questId=2 },	  	-- "WHEE!" Darkmoon Carusel
+	[130283]	= { questId=1 }, 	-- "Enlightenment" 50% Monk
+	[127250]	= { questId=1 }, 	-- "Ancient Knowledge" 300%
+	[277952]	= { questId=3 },	  	-- "WoW's 14th Anniversary"
+	[46668]		= { questId=2 },	  	-- "WHEE!" Darkmoon Carusel
 	[281561]	= xpNoExperience,			        	-- = "Uncontested" ???  Zero all xpBonus and add -100%
-	[212846]	= { killId=1, questId=2 },  		-- "The Council's Wisdom" 5%
-	[290340]	= { killId=1, questId=2 },  		-- "Taste of Victory" 10%
-	[189375]	= { questId = 1, killId = 2},	  -- "Rapid Mind" 300%
+	[212846]	= { questId=2 },  		-- "The Council's Wisdom" 5%
+	[290340]	= { questId=2 },  		-- "Taste of Victory" 10%
+	[189375]	= { questId=1 },	  -- "Rapid Mind" 300%
 	[292242]	= xpNoExperience,				        -- "No Experience" -100%
 	[262759]	= xpNoExperience,				        -- "No Experience" -100%
 	[217514]	= xpLegionInvasion,				      -- "Legion Invasion" -90%
@@ -184,42 +170,24 @@ local SpellXPInfo = {
 	[218337]	= xpLegionInvasion,
 	[227520]	= xpLegionInvasion,
 	[227521]	= xpLegionInvasion,
-	[86963]		= { questId = 1 },				      -- "Learning by Example" 10%
-	[91991]		= { killId=1, questId=2 },		  -- "Juju Instinct" 5%
-	[186334]	= { kill = 2, quest = 1 },		  -- "Honored Champion" 50% PvP exp, trinket effect 126948, 126949
-	[171333]	= { questId = 2, killId = 3 },	-- "Garrison Ability Override" 20%
-	[171334]	= { questId = 2, killId = 3 },	-- "Garrison Ability Override" 20%
-	[78631]		= { questId = 1, killId = 2 },	-- "Fast Track (Rank 1)" 5% Guild Perk
-	[78632]		= { questId = 1, killId = 2 },	-- "Fast Track (Rank 2)" 10% Guild Perk
-	[146929]	= { questId = 1, killId = 2 }, 	-- "Enduring Elixir of Wisdom" 100% (Mage-only)
-	[289982]	= { killId=2, questId=3 },		  -- "Draught of Ten Lands" 10%
-	[136583]	= { killId=1, questId=2 },	  	-- "Darkmoon Top Hat" 10%
-	[85617]		= { killId=1, questId=2 },	  	-- "Argus' Journal" 2%
-	[178119]	= { questId = 1, killId = 2 },	-- "Accelerated Learning" 20%
-	[210072]	= { questId = 1 },			      	-- "_JKL - live update crash test 2" -100%
-	[33377]		= { killId=1 }, 		        		-- Blessing of Auchindoun
-	[176798]	= { killId=1 }, 		        		-- Blessing of Spirits
-	[58045]		= { killId=1 }, 		        		-- Essence of Wintergrasp 5%
-	[194110]	= { killId=1 }, 		        		-- Gift of the Storm 60%
-	[24705]		= { killId=1 }, 		        		-- Grim Visage 10%
-	[95987]		= { killId=1 }, 		        		-- Unburdened 10%
-	[90708]		= { killId=1 }, 		        		-- Guild Battle Standard
-	[90216]		= { killId=1 }, 		        		-- Guild Battle Standard
-	[32098]		= { killId=1 }, 		        		-- Honor Hold's Favor 25%
-	[88257]		= { killId=1 }, 		        		-- Night Dragon Deftness 2%
-	[95988]		= { killId=1 }, 		        		-- Reverence for the Flame 10%
-	[29175]		= { killId=1 }, 		        		-- Ribbon Dance 10%
-	[58440]		= { killId=1 }, 		        		-- Rork Red Ribbon
+	[86963]		= { questId=1 },				      -- "Learning by Example" 10%
+	[91991]		= { questId=2 },		  -- "Juju Instinct" 5%
+	[186334]	= { questId=1 },		  -- "Honored Champion" 50% PvP Exp
+	[171333]	= { questId=2 },	-- "Garrison Ability Override" 20%
+	[171334]	= { questId=2 },	-- "Garrison Ability Override" 20%
+	[78631]		= { questId=1 },	-- "Fast Track (Rank 1)" 5% Guild Perk
+	[78632]		= { questId=1 },	-- "Fast Track (Rank 2)" 10% Guild Perk
+	[146929]	= { questId=1 }, 	-- "Enduring Elixir of Wisdom" 100% (Mage-only)
+	[289982]	= { questId=3 },		  -- "Draught of Ten Lands" 10%
+	[136583]	= { questId=2 },	  	-- "Darkmoon Top Hat" 10%
+	[85617]		= { questId=2 },	  	-- "Argus' Journal" 2%
+	[178119]	= { questId=1 },	-- "Accelerated Learning" 20%
+	[210072]	= { questId=1 },			      	-- "_JKL - live update crash test 2" -100%
 	[230272]	= xpNoExperience,		        		-- Stranglethorn Streaker
-	[32096]		= { killId=1 }, 		        		-- Thrallmar's Favor
-	[87592]		= { killId=2 }, 		        		-- Ex-KEF: Active Aura -50%
-	[177771]	= { killId=1 }, 		        		-- Farondis/Idri Guardian Aura -95%
-	[87391]		= { killId=2 }, 		        		-- Viking Helmet -50%
-	[42138]		= { killId=1 }, 		        		-- Brewfest Enthusiast 2%
 
 	-- Next two auras have tooltip with 10% XP bonus but no XP bonus value provided
-	[290337]	= { killId=1, questId=2, getBonus = xpBfaGetZoneBonus },		-- "Taste of Victory" 10%
-	[292137]	= { killId=1, questId=2, getBonus = xpBfaGetZoneBonus },		-- "Taste of Victory" 10%
+	[290337]	= { questId=2, getBonus = xpBfaGetZoneBonus },		-- "Taste of Victory" 10%
+	[292137]	= { questId=2, getBonus = xpBfaGetZoneBonus },		-- "Taste of Victory" 10%
 
 	-- Next two capital-auras look like bugged. It displays bonus but not apply it to end expierence.
 	[289954]	= xpEnlisted, 					        -- "War mode Alliance in Stormwind"  Bugged?
@@ -285,10 +253,7 @@ function BonusXP:onUpdate(elapsed)
   BonusXP.elapsedTimer = BonusXP.elapsedTimer + elapsed;
   if BonusXP.elapsedTimer < BonusXP_UpdateInterval then return end
 
-  local isRafQuestBonusActive, isRafKillBonusActive, closeMemberCount, closeFriendCount = BonusXP:getGroupInfo();
-
-  local isRAFBonusActive = isRafQuestBonusActive or isRafKillBonusActive;
-  isCurrentRAFBonusActive = isRAFBonusActive;
+  isCurrentRAFBonusActive = BonusXP:getGroupInfo();
 
   equipXpBonus.totalQuest = equipXpBonus.quest + (not isRafQuestBonusActive and heirloomXpBonus.quest or 0);
 
@@ -368,7 +333,7 @@ function BonusXP:getAuraXpBonus(sr, canbeAnniversary)
 
 		result = BonusXP:getSpInfoBonus(spinfo, sr);
 	else
-		result = { kill = 0, quest = 0 };
+		result = { quest=0 };
 	end
 	result.isAnniversary = spellId == AnniversaryWorkId;
 
@@ -446,7 +411,7 @@ end
 function BonusXP:refreshSpellData()
 	local name, spellId;
 
-	auraXpBonus = { kill=0, quest=0 };
+	auraXpBonus = { quest=0 };
   auras = {};
 
 	local isAnniversaryFound = false;
@@ -460,18 +425,17 @@ function BonusXP:refreshSpellData()
 			local bonus = BonusXP:getAuraXpBonus(sr, not isAnniversaryFound);
 
 			if bonus.isBlockXPGainAura then
-				auraXpBonus = { kill=-100, quest=-100, isBlockXPGainAura = true };
+				auraXpBonus = { quest=-100, isBlockXPGainAura = true };
 				break;
 			end
 
 			isAnniversaryFound = bonus.isAnniversary or isAnniversaryFound;
 
-      if bonus.quest > 0 or bonus.kill > 0 then
+      if bonus.quest > 0 then
           auras[#auras+1] = { name = name, id = spellId, questBonus = bonus.quest, killBonus = bonus.kill };
       end
 
 			auraXpBonus.quest = auraXpBonus.quest + bonus.quest;
-			auraXpBonus.kill = auraXpBonus.kill + bonus.kill;
 		else
 			break;
 		end
@@ -543,8 +507,8 @@ function BonusXP:calculateEquipment()
 	local xpBonus, auraId, item;
   equipment = {};
 
-	equipXpBonus = { kill=0, quest=0 };
-	heirloomXpBonus = { kill=0, quest=0 };
+	equipXpBonus = { quest=0 };
+	heirloomXpBonus = { quest=0 };
 
 	for slotId, itemId in pairs(BonusXP.slotItemIdMap) do
 		item = itemId and equipItemData[itemId];
@@ -556,14 +520,12 @@ function BonusXP:calculateEquipment()
 
 					if Heirloom50PvPInstance == item.heirloom.auraId then
 						equipXpBonus.quest = equipXpBonus.quest + xpBonus.quest;
-						equipXpBonus.kill = equipXpBonus.kill + xpBonus.kill;
 					else
 						heirloomXpBonus.quest = heirloomXpBonus.quest + xpBonus.quest;
-						heirloomXpBonus.kill = heirloomXpBonus.kill + xpBonus.kill;
 					end
 
           if xpBonus.quest > 0 then
-            equipment[#equipment+1] = { name = GetItemInfo(itemId), id = itemId, questBonus = xpBonus.quest, killBonus = xpBonus.kill };
+            equipment[#equipment+1] = { name = GetItemInfo(itemId), id = itemId, questBonus = xpBonus.quest };
           end
 				end
 			end
@@ -571,7 +533,6 @@ function BonusXP:calculateEquipment()
 			xpBonus = item.enchantId and BonusXP:getItemAuraXpBonus(item.enchantId, itemId);
 			if xpBonus then
 				equipXpBonus.quest = equipXpBonus.quest + xpBonus.quest;
-				equipXpBonus.kill = equipXpBonus.kill + xpBonus.kill;
 			end
 
 			local cnt, gemId = #item.gems;
@@ -581,7 +542,6 @@ function BonusXP:calculateEquipment()
 				if auraId then
 					xpBonus = BonusXP:getItemAuraXpBonus(auraId, itemId);
 					equipXpBonus.quest = equipXpBonus.quest + xpBonus.quest;
-					equipXpBonus.kill = equipXpBonus.kill + xpBonus.kill;
 				end
 			end
 		end
@@ -748,7 +708,6 @@ function BonusXP:onEventHandler(self, event, ...)
 		isInPvPInstance = isInPvPArea;
 		if isAreaChanged then BonusXP:updateGearInfo(); end
 
-		--local uiMapArtID = C_Map.GetMapArtID(currentUiMapID or -1);
 	elseif event == "ADDON_LOADED" and arg1=="BonusXP" then
 		BonusXP:onLaterLoading(self);
 
@@ -875,7 +834,7 @@ function BonusXP:getItemLinkInfo(itemLink)
 	local _,_, lastValue, name = string.find(suffix, "([^|]*)|h%[?([^%[%]]*)%]?|h|?r?");
 	splRes[segmentsCount] = lastValue
 
-    local upgradeValue = upgradeTypeID and upgradeTypeID ~= "" and (tonumber(splRes[15 + numBonusIds]) or 0) or nil;
+  local upgradeValue = upgradeTypeID and upgradeTypeID ~= "" and (tonumber(splRes[15 + numBonusIds]) or 0) or nil;
 
 	local relicBonuses = {};
 
