@@ -1,6 +1,4 @@
-# Bonus XP Add-On
-
-[![Build Status](https://travis-ci.com/peterwooley/bonusxp.svg?branch=master)](https://travis-ci.com/peterwooley/bonusxp)
+# Bonus XP Add-On [![Build Status](https://travis-ci.com/peterwooley/bonusxp.svg?branch=master)](https://travis-ci.com/peterwooley/bonusxp)
 
 How much Bonus XP are you earning? Do you have Heirloom gear? Are you using Recruit-a-Friend? Is there a Bonus XP event taking place?
 
@@ -10,6 +8,7 @@ Open the Character screen (C) and find your Bonus XP percentage at the bottom of
 
 <img src="screenshots/default.png" alt="Bonus XP Add-On Tooltip">
 <img src="screenshots/raf.png" alt="Bonus XP Add-On with Recruit-a-Friend active">
+<img src="screenshots/inactive.png" alt="Bonus XP Add-On with inactive section headers">
 
 ## Thanks
 Thanks to the folks who help test:
