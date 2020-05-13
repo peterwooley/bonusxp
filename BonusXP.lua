@@ -223,8 +223,7 @@ function BonusXP:initialize()
 	local _, instanceType = IsInInstance();
 	isInPvPInstance = instanceType=="pvp" or instanceType=="arena";
 
-	local isRafQuestBonusActive, _ = BonusXP:getGroupInfo();
-	isCurrentRAFBonusActive = isRafQuestBonusActive;
+	isCurrentRAFBonusActive = BonusXP:getGroupInfo();
 end
 
 function BonusXP:registerEvents()
@@ -251,9 +250,9 @@ function BonusXP:onUpdate(elapsed)
 
   isCurrentRAFBonusActive = BonusXP:getGroupInfo();
 
-  equipXpBonus.totalQuest = equipXpBonus.quest + (not isRafQuestBonusActive and heirloomXpBonus.quest or 0);
+  equipXpBonus.totalQuest = equipXpBonus.quest + (not isCurrentRAFBonusActive and heirloomXpBonus.quest or 0);
 
-  rafBonus.questActive = isRafQuestBonusActive and rafBonus.quest or 0;
+  rafBonus.questActive = isCurrentRAFBonusActive and rafBonus.quest or 0;
 
   xpBonusQuest = (100 + equipXpBonus.totalQuest + auraXpBonus.quest) * (100 + rafBonus.questActive) / 100 - 100;
 
@@ -397,9 +396,7 @@ function BonusXP:getGroupInfo()
         end
     end
 
-	return	minEffLevelRange < 5 or isSameExpansion or isInQuestLevelRange,	-- isRafQuestBonusActive
-			minLevelRange < 5,					-- isRafKillBonusActive
-			closeMemberCount, closeFriendCount;	-- including player
+	return	minEffLevelRange < 5 or isSameExpansion or isInQuestLevelRange;
 end
 
 
@@ -568,8 +565,8 @@ function BonusXP:updateBuffText()
   local title = BonusXP_Tooltip_BuffsTitle;
   local total = BonusXP_Tooltip_BuffsTotal;
   if auraXpBonus.quest > 0 then
-    title:SetFontObject(Game13Font)
-    total:SetFontObject(Game13Font)
+    title:SetFontObject(Game13FontEnabled)
+    total:SetFontObject(Game13FontEnabled)
   else
     title:SetFontObject(Game13FontDisabled)
     total:SetFontObject(Game13FontDisabled)
@@ -583,8 +580,8 @@ function BonusXP:updateRAFText()
   local title = BonusXP_Tooltip_RAFTitle;
   local total = BonusXP_Tooltip_RAFTotal;
   if isCurrentRAFBonusActive then
-    title:SetFontObject(Game13Font)
-    total:SetFontObject(Game13Font)
+    title:SetFontObject(Game13FontEnabled)
+    total:SetFontObject(Game13FontEnabled)
   else
     title:SetFontObject(Game13FontDisabled)
     total:SetFontObject(Game13FontDisabled)
