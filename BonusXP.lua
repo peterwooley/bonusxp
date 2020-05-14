@@ -227,7 +227,6 @@ function BonusXP:initialize()
 end
 
 function BonusXP:registerEvents()
-	button:RegisterEvent("ADDON_LOADED");
 	button:RegisterEvent("PLAYER_LOGIN");
 	button:RegisterEvent("UNIT_AURA");
 	button:RegisterEvent("HEIRLOOMS_UPDATED");
@@ -645,15 +644,7 @@ function BonusXP:updateEquipmentListText()
   BonusXP_Tooltip_EquipmentListTotal:SetText(values);
 end
 
-function BonusXP:onLaterLoading(self)
-	local onDemand = IsAddOnLoadOnDemand("BonusXP");
-
-	if not isPlayerReadyFired and IsLoggedIn() and onDemand then
-		hqaawEventHandler(self, "PLAYER_LOGIN");
-	end
-end
-
-function BonusXP:onPlayerReady(self, event, arg1)
+function BonusXP:onPlayerReady()
 	if isPlayerReadyFired then return end
 	isPlayerReadyFired = true;
 
@@ -673,17 +664,17 @@ function BonusXP:onEventHandler(self, event, ...)
 	if event == "PLAYER_LOGIN" then
 		local n = UnitAura("player",1);
 		if not isPlayerReadyFired and n then
-			BonusXP:onPlayerReady(self, event, arg1);
+			BonusXP:onPlayerReady();
 		end
 
-		self:UnregisterEvent("PLAYER_LOGIN");
+		button:UnregisterEvent("PLAYER_LOGIN");
 	elseif event == "PLAYER_EQUIPMENT_CHANGED" then
 		BonusXP:refreshEquipDataSlot(arg1);
 		BonusXP:updateGearInfo();
 		isEquipmentChanged = true;
 	elseif event == "UNIT_AURA" and arg1 == "player" then
 		if not isPlayerReadyFired then
-			BonusXP:onPlayerReady(self, event, arg2);
+			BonusXP:onPlayerReady();
 		elseif isEquipmentChanged then
 			isEquipmentChanged = false;
 		else
@@ -700,10 +691,6 @@ function BonusXP:onEventHandler(self, event, ...)
 		isInPvPInstance = isInPvPArea;
 		if isAreaChanged then BonusXP:updateGearInfo(); end
 
-	elseif event == "ADDON_LOADED" and arg1=="BonusXP" then
-		BonusXP:onLaterLoading(self);
-
-		self:UnregisterEvent("ADDON_LOADED");
 	elseif event == "PLAYER_LEVEL_UP" then
 		playerLevel = arg1 or UnitLevel("player");
 		BonusXP:refreshEquipData();
@@ -727,7 +714,7 @@ function BonusXP:onEventHandler(self, event, ...)
 			end
 		end
 	elseif event == "HEIRLOOMS_UPDATED" then
-		BonusXP:onPlayerReady(self, event, arg1);
+		BonusXP:onPlayerReady();
 		local cnt = #awaitingHeirloomData;
 		if not arg1 and not arg2 and cnt > 0 then
 			for i=1, cnt do
@@ -747,15 +734,15 @@ function BonusXP:onEventHandler(self, event, ...)
 			end
 		end
 	elseif event == "PLAYER_REGEN_DISABLED" then
-		if self:IsEventRegistered("UNIT_AURA") then
-			self:UnregisterEvent("UNIT_AURA");
+		if button:IsEventRegistered("UNIT_AURA") then
+			button:UnregisterEvent("UNIT_AURA");
 		end
 	elseif event == "PLAYER_REGEN_ENABLED" then
-		if not self:IsEventRegistered("UNIT_AURA") then
-			self:RegisterEvent("UNIT_AURA");
+		if not button:IsEventRegistered("UNIT_AURA") then
+			button:RegisterEvent("UNIT_AURA");
 		end
 	elseif event == "PLAYER_LOGOUT" then
-		self:UnregisterAllEvents();
+		button:UnregisterAllEvents();
 	end
 end
 
