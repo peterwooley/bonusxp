@@ -10,6 +10,10 @@ Open the Character screen (C) and find your Bonus XP percentage at the bottom of
 <img src="screenshots/raf.png" alt="Bonus XP Add-On with Recruit-a-Friend active">
 <img src="screenshots/inactive.png" alt="Bonus XP Add-On with inactive section headers">
 
+## API
+This add-on exposes a global function to get the current Bonus XP.
+`GetBonusXP(); -- Returns a string of the bonus XP, such as: "170%"`
+
 ## Thanks
 Thanks to the folks who help test:
 
