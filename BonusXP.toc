@@ -5,7 +5,6 @@
 ## Version: 1.2.1
 ## LoadOnDemand: 0
 ## DefaultState: enabled
-## SavedVariables: BonusXP
 
 BonusXP.xml
 BonusXP.lua
