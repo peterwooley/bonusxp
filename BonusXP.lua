@@ -112,9 +112,6 @@ local slotItemIdMap = {
 	[INVSLOT_TABARD]	= nil,
 };
 
-local updateInterval = 1;
-local elapsedTimer = 1;
-
 local function xpTrinketGetPvpZoneBonus(id)
 	if isInPvPInstance and ( id == 126948 or id == 126949 ) then
 		return { quest = 50 };
@@ -124,10 +121,10 @@ local function xpTrinketGetPvpZoneBonus(id)
 end;
 
 local itemAuraXPInfo = {
-	[Heirloom5]		= xpBonus5, -- "Heirloom Experience Bonus +5%"
-	[Heirloom10]	= xpBonus10, -- "Heirloom Experience Bonus +10%"
-	[Rubellite5]	= xpBonus5, -- "Rubellite - Experience Bonus +5%"
-	[Heirloom50PvPInstance]     = { getBonus = xpTrinketGetPvpZoneBonus }
+	[Heirloom5] = xpBonus5,    -- "Heirloom Experience Bonus +5%"
+	[Heirloom10] = xpBonus10,  -- "Heirloom Experience Bonus +10%"
+	[Rubellite5] = xpBonus5,   -- "Rubellite - Experience Bonus +5%"
+	[Heirloom50PvPInstance] = { getBonus = xpTrinketGetPvpZoneBonus }
 };
 
 local xpNoExperience = { isBlockXPGainAura = true };
@@ -241,17 +238,12 @@ function BonusXP:registerEvents()
 	button:RegisterEvent("PLAYER_REGEN_ENABLED");
 end
 
-function BonusXP:onUpdate(elapsed)
-  elapsedTimer = elapsedTimer + elapsed;
-  if elapsedTimer < updateInterval then return end
+function BonusXP:updateUI()
+  if not button:IsVisible() then return end
 
-  BonusXP:calculateBonus();
-  
   BonusXP:updateButton();
   BonusXP:updateTooltipText();
   BonusXP:updateTooltipSize();
-
-  elapsedTimer = 0;
 end
 
 function BonusXP:calculateBonus()
@@ -262,6 +254,8 @@ function BonusXP:calculateBonus()
   rafBonus.questActive = isCurrentRAFBonusActive and rafBonus.quest or 0;
 
   xpBonusQuest = (100 + equipXpBonus.totalQuest + auraXpBonus.quest) * (100 + rafBonus.questActive) / 100 - 100;
+
+  BonusXP:updateUI();
 end
 
 function BonusXP:updateTooltipSize()
@@ -744,7 +738,10 @@ function BonusXP:onEventHandler(self, event, ...)
 		end
 	elseif event == "PLAYER_LOGOUT" then
 		button:UnregisterAllEvents();
+    return
 	end
+
+  BonusXP:calculateBonus();
 end
 
 
@@ -783,9 +780,10 @@ function BonusXP:setup()
 
   BonusXP:registerEvents();
 
-  button:SetScript("OnUpdate", BonusXP.onUpdate);
-
   button:SetScript("OnEvent", function(self, ...)
+		BonusXP:onEventHandler(f, ...);
+	end);
+  button:SetScript("OnShow", function(self, ...)
 		BonusXP:onEventHandler(f, ...);
 	end);
 end
