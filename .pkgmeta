@@ -1,7 +1,6 @@
 package-as: BonusXP
 ignore:
     - logo
+    - screenshots
     - Makefile
     - README.md
-    - release
-    - screenshot.png
