@@ -245,6 +245,16 @@ function BonusXP:onUpdate(elapsed)
   elapsedTimer = elapsedTimer + elapsed;
   if elapsedTimer < updateInterval then return end
 
+  BonusXP:calculateBonus();
+  
+  BonusXP:updateButton();
+  BonusXP:updateTooltipText();
+  BonusXP:updateTooltipSize();
+
+  elapsedTimer = 0;
+end
+
+function BonusXP:calculateBonus()
   isCurrentRAFBonusActive = BonusXP:getGroupInfo();
 
   equipXpBonus.totalQuest = equipXpBonus.quest + (not isCurrentRAFBonusActive and heirloomXpBonus.quest or 0);
@@ -252,12 +262,6 @@ function BonusXP:onUpdate(elapsed)
   rafBonus.questActive = isCurrentRAFBonusActive and rafBonus.quest or 0;
 
   xpBonusQuest = (100 + equipXpBonus.totalQuest + auraXpBonus.quest) * (100 + rafBonus.questActive) / 100 - 100;
-
-  BonusXP:updateButton();
-  BonusXP:updateTooltipText();
-  BonusXP:updateTooltipSize();
-
-  elapsedTimer = 0;
 end
 
 function BonusXP:updateTooltipSize()
@@ -652,8 +656,7 @@ function BonusXP:onPlayerReady()
 	BonusXP:refreshSpellData();
 	BonusXP:updateGearInfo();
 
-  BonusXP:updateButton();
-
+  BonusXP:calculateBonus();
 end
 
 function BonusXP:onEventHandler(self, event, ...)
