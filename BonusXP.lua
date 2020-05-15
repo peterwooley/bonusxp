@@ -1,5 +1,4 @@
-﻿local _G = _G
-local _, BonusXP = ...
+﻿local _, BonusXP = ...
 local playerFaction, _ = UnitFactionGroup("player");
 local playerLevel = UnitLevel("player");
 local playerLanguage = "en";
@@ -39,8 +38,7 @@ local currentPlayerContinent = -1;
 local isInPvPInstance = nil;
 local currentUiMapID = nil;
 local equipItemData = {};
-
-BonusXP.equipAllSlots = {
+local equipAllSlots = {
 	INVSLOT_AMMO,
 	INVSLOT_HEAD,
 	INVSLOT_NECK,
@@ -63,7 +61,7 @@ BonusXP.equipAllSlots = {
 	INVSLOT_TABARD,
 };
 
-BonusXP.heirloomSlotAuras = {
+local heirloomSlotAuras = {
 	[INVSLOT_HEAD]		= Heirloom10,
 	[INVSLOT_SHOULDER]	= Heirloom10,
 	[INVSLOT_CHEST]		= Heirloom10,
@@ -75,11 +73,11 @@ BonusXP.heirloomSlotAuras = {
 	[INVSLOT_TRINKET2]	= Heirloom50PvPInstance,
 };
 
-BonusXP.itemAuras = {
+local itemAuras = {
 	[153714] = Rubellite5,
 };
 
-BonusXP.anniversaryPattern = {
+local anniversaryPattern = {
 	["en"] = { "WoW(.*)niversary" },
 	["pt"] = { "(.*)versário do WoW" },
 	["it"] = { "(.*)versario di WoW" },
@@ -91,7 +89,7 @@ BonusXP.anniversaryPattern = {
 	["ko"] = { "월드 오브(.*)주년", "와우(.*)주년" },
 };
 
-BonusXP.slotItemIdMap = {
+local slotItemIdMap = {
 	[INVSLOT_AMMO]		= nil,
 	[INVSLOT_HEAD]		= nil,
 	[INVSLOT_NECK]		= nil,
@@ -114,7 +112,8 @@ BonusXP.slotItemIdMap = {
 	[INVSLOT_TABARD]	= nil,
 };
 
-BonusXP.elapsedTimer = 1;
+local updateInterval = 1;
+local elapsedTimer = 1;
 
 local function xpTrinketGetPvpZoneBonus(id)
 	if isInPvPInstance and ( id == 126948 or id == 126949 ) then
@@ -242,10 +241,9 @@ function BonusXP:registerEvents()
 	button:RegisterEvent("PLAYER_REGEN_ENABLED");
 end
 
-local BonusXP_UpdateInterval = 1.0;
 function BonusXP:onUpdate(elapsed)
-  BonusXP.elapsedTimer = BonusXP.elapsedTimer + elapsed;
-  if BonusXP.elapsedTimer < BonusXP_UpdateInterval then return end
+  elapsedTimer = elapsedTimer + elapsed;
+  if elapsedTimer < updateInterval then return end
 
   isCurrentRAFBonusActive = BonusXP:getGroupInfo();
 
@@ -259,7 +257,7 @@ function BonusXP:onUpdate(elapsed)
   BonusXP:updateTooltipText();
   BonusXP:updateTooltipSize();
 
-  BonusXP.elapsedTimer = 0;
+  elapsedTimer = 0;
 end
 
 function BonusXP:updateTooltipSize()
@@ -288,7 +286,7 @@ function BonusXP:isWowAnniversaryAura(label, id)
 		return AnniversaryId == id and AnniversaryWorkId;
 	end
 
-	local pattern = BonusXP.anniversaryPattern[playerLanguage];
+	local pattern = anniversaryPattern[playerLanguage];
 
 	for i=1, #pattern do
 		if string.match(label, pattern[i]) then
@@ -470,10 +468,10 @@ function BonusXP:refreshEquipDataSlot(slotId, ...)
 	end
 
 	if eqItem.heirloom then
-		eqItem.heirloom.auraId = BonusXP.heirloomSlotAuras[slotId];
+		eqItem.heirloom.auraId = heirloomSlotAuras[slotId];
 	end
 
-	BonusXP.slotItemIdMap[slotId] = eqItem.id or nil;
+	slotItemIdMap[slotId] = eqItem.id or nil;
 
 	return eqItem;
 end
@@ -482,9 +480,9 @@ function BonusXP:refreshEquipData()
 	local count, eqItem, slotId;
 	local heirloomIDs = _G.C_Heirloom.GetHeirloomItemIDs(); -- required to get heirlooms data ready
 
-	count = #BonusXP.equipAllSlots;
+	count = #equipAllSlots;
 	for i=1,count do
-		slotId = BonusXP.equipAllSlots[i];
+		slotId = equipAllSlots[i];
 		BonusXP:refreshEquipDataSlot(slotId);
 	end
 end
@@ -501,7 +499,7 @@ function BonusXP:calculateEquipment()
 	equipXpBonus = { quest=0 };
 	heirloomXpBonus = { quest=0 };
 
-	for slotId, itemId in pairs(BonusXP.slotItemIdMap) do
+	for slotId, itemId in pairs(slotItemIdMap) do
 		item = itemId and equipItemData[itemId];
 
 		if item then
@@ -529,7 +527,7 @@ function BonusXP:calculateEquipment()
 			local cnt, gemId = #item.gems;
 			for i=1, cnt do
 				gemId = item.gems[i];
-				auraId = gemId > 0 and BonusXP.itemAuras[gemId]
+				auraId = gemId > 0 and itemAuras[gemId]
 				if auraId then
 					xpBonus = BonusXP:getItemAuraXpBonus(auraId, itemId);
 					equipXpBonus.quest = equipXpBonus.quest + xpBonus.quest;
@@ -709,7 +707,7 @@ function BonusXP:onEventHandler(self, event, ...)
 			local olditemMaxLevel = item.heirloom.maxLevel;
 			item.heirloom.maxLevel = select(10, C_Heirloom.GetHeirloomInfo(arg1));
 
-			if BonusXP.slotItemIdMap[item.slotId] == arg1 and playerLevel > olditemMaxLevel and playerLevel < item.heirloom.maxLevel then
+			if slotItemIdMap[item.slotId] == arg1 and playerLevel > olditemMaxLevel and playerLevel < item.heirloom.maxLevel then
 				BonusXP:updateGearInfo();
 			end
 		end
@@ -849,6 +847,10 @@ function BonusXP:getItemLinkInfo(itemLink)
 	return tonumber(itemId), name, tonumber(linkLevel), lType, tonumber(suffixId), color, tonumber(enchantId), jewels, bonusIds, tonumber(uniqueId), tonumber(upgradeTypeID), tonumber(instanceDifficultyId), tonumber(specializationID), upgradeValue, relicBonuses, segmentsCount
 end
 
+function BonusXP:getDetails()
+  return xpBonusQuest .. "%";
+end
+
 if not _G.strsplit then
 	function _G.strsplit(sep, inputstr)
 		sep=sep or '%s'
@@ -859,5 +861,9 @@ if not _G.strsplit then
 		end
 	end
 end
+
+_G.GetBonusXP = function()
+  return BonusXP:getDetails();
+end;
 
 BonusXP:setup();
