@@ -12,7 +12,10 @@ Open the Character screen (C) and find your Bonus XP percentage at the bottom of
 
 ## API
 This add-on exposes a global function to get the current Bonus XP.
-`GetBonusXP(); -- Returns a string of the bonus XP, such as: "170%"`
+
+```lua
+GetBonusXP(); -- Returns a string of the bonus XP, such as: "170%"
+```
 
 ## Thanks
 Thanks to the folks who help test:
