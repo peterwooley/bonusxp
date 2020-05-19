@@ -394,39 +394,38 @@ function BonusXP:getGroupInfo()
 	return	minEffLevelRange < 5 or isSameExpansion or isInQuestLevelRange;
 end
 
-
 function BonusXP:refreshSpellData()
-	local name, spellId;
+  local name, spellId;
 
-	auraXpBonus = { quest=0 };
+  auraXpBonus = { quest=0 };
   auras = {};
 
-	local isAnniversaryFound = false;
+  local isAnniversaryFound = false;
 
-	for i=1,40 do
-		local sr = { UnitAura("player",i) };
-		name = sr[1];
-		spellId = sr[10];
+  for i=1,40 do
+    local sr = { UnitAura("player",i) };
+    name = sr[1];
+    spellId = sr[10];
 
-		if name then
-			local bonus = BonusXP:getAuraXpBonus(sr, not isAnniversaryFound);
+    if name then
+      local bonus = BonusXP:getAuraXpBonus(sr, not isAnniversaryFound);
 
-			if bonus.isBlockXPGainAura then
-				auraXpBonus = { quest=-100, isBlockXPGainAura = true };
-				break;
-			end
-
-			isAnniversaryFound = bonus.isAnniversary or isAnniversaryFound;
-
-      if bonus.quest > 0 then
-          auras[#auras+1] = { name = name, id = spellId, questBonus = bonus.quest };
+      if bonus.isBlockXPGainAura then
+        auraXpBonus = { quest=-100, isBlockXPGainAura = true };
+        break;
       end
 
-			auraXpBonus.quest = auraXpBonus.quest + bonus.quest;
-		else
-			break;
-		end
-	end
+      isAnniversaryFound = bonus.isAnniversary or isAnniversaryFound;
+
+      if bonus.quest > 0 then
+        auras[#auras+1] = { name = name, id = spellId, questBonus = bonus.quest };
+      end
+
+      auraXpBonus.quest = auraXpBonus.quest + bonus.quest;
+    else
+      break;
+    end
+  end
 end
 
 function BonusXP:refreshEquipDataSlot(slotId, ...)
@@ -472,6 +471,40 @@ function BonusXP:refreshEquipDataSlot(slotId, ...)
 	slotItemIdMap[slotId] = eqItem.id or nil;
 
 	return eqItem;
+end
+
+function BonusXP:getSpellData(target)
+	local name, spellId;
+	local auraXpBonus = { quest=0 };
+  local auras = {};
+	local isAnniversaryFound = false;
+
+	for i=1,40 do
+		local sr = { UnitAura(target,i) };
+		name = sr[1];
+		spellId = sr[10];
+
+		if name then
+			local bonus = BonusXP:getAuraXpBonus(sr, not isAnniversaryFound);
+
+			if bonus.isBlockXPGainAura then
+				auraXpBonus = { quest=-100, isBlockXPGainAura = true };
+				break;
+			end
+
+			isAnniversaryFound = bonus.isAnniversary or isAnniversaryFound;
+
+      if bonus.quest > 0 then
+          auras[#auras+1] = { name = name, id = spellId, questBonus = bonus.quest };
+      end
+
+			auraXpBonus.quest = auraXpBonus.quest + bonus.quest;
+		else
+			break;
+		end
+	end
+
+  return auraXpBonus.quest, auras;
 end
 
 function BonusXP:refreshEquipData()
@@ -863,8 +896,12 @@ if not _G.strsplit then
 	end
 end
 
-_G.GetBonusXP = function()
-  return BonusXP:getDetails();
+_G.GetBonusXP = function(target)
+  if target then
+    return BonusXP:getSpellData(target);
+  else
+    return BonusXP:getDetails();
+  end
 end;
 
 BonusXP:setup();
