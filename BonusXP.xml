@@ -93,4 +93,9 @@
       </Layer>
     </Layers>
   </Frame>
+
+
+  <!-- Options Screen -->
+  <Frame name="BonusXP_Options" parent="UIParent">
+  </Frame>
 </Ui>

@@ -779,6 +779,7 @@ function BonusXP:setup()
 	tooltip:Hide();
 
   BonusXP:registerEvents();
+  BonusXP:registerOptions();
 
   button:SetScript("OnEvent", function(self, ...)
 		BonusXP:onEventHandler(f, ...);
@@ -786,6 +787,25 @@ function BonusXP:setup()
   button:SetScript("OnShow", function(self, ...)
 		BonusXP:onEventHandler(f, ...);
 	end);
+end
+
+
+function BonusXP:registerOptions()
+  local options = BonusXP_Options;
+  options.name = "Bonus XP";
+  options.okay = function (self) print("Options saved.") end;
+  options.cancel = function (self) print("Options canceled.") end;
+
+  -- Add the panel to the Interface Options
+  InterfaceOptions_AddCategory(BonusXP_Options);
+
+  ---- Make a child panel
+  --MyAddon.childpanel = CreateFrame( "Frame", "MyAddonChild", MyAddon.panel);
+  --MyAddon.childpanel.name = "MyChild";
+  ---- Specify childness of this panel (this puts it under the little red [+], instead of giving it a normal AddOn category)
+  --MyAddon.childpanel.parent = MyAddon.panel.name;
+  ---- Add the child to the Interface Options
+  --InterfaceOptions_AddCategory(MyAddon.childpanel);
 end
 
 function BonusXP:updateButton()
