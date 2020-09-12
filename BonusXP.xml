@@ -54,35 +54,15 @@
           </Anchors>
         </FontString>
       </Layer>
-      <Layer name="$parent_Equipment">
-        <FontString name="$parent_EquipmentTitle" inherits="Game13FontEnabled" text="Equipment" justifyH="LEFT" justifyV="TOP">
-          <Anchors>
-            <Anchor point="TOPLEFT" relativeTo="$parent_BuffsList" relativePoint="BOTTOMLEFT" />
-          </Anchors>
-        </FontString>
-        <FontString name="$parent_EquipmentTotal" inherits="Game13FontEnabled" text="0%" justifyH="RIGHT" justifyV="TOP">
-          <Anchors>
-            <Anchor point="TOPRIGHT" relativeTo="$parent_BuffsListTotal" relativePoint="BOTTOMRIGHT" />
-          </Anchors>
-        </FontString>
-        <FontString name="$parent_EquipmentList" inherits="GameNormalNumberFont" text="Equipment List" justifyH="LEFT" justifyV="TOP">
-          <Anchors>
-            <Anchor point="TOPLEFT" relativeTo="BonusXP_Tooltip_EquipmentTitle" relativePoint="BOTTOMLEFT" x="0" y="-5" />
-          </Anchors>
-        </FontString>
-        <FontString name="$parent_EquipmentListTotal" inherits="GameNormalNumberFont" text="10%" justifyH="RIGHT" justifyV="TOP">
-          <Anchors>
-            <Anchor point="TOPRIGHT" relativeTo="$parent_EquipmentTotal" relativePoint="BOTTOMRIGHT" x="0" y="-5" />
-          </Anchors>
-        </FontString>
+      <Layer name="$parent_RAF">
         <FontString name="$parent_RAFTitle" inherits="Game13FontEnabled" text="Recruit-a-Friend" justifyH="LEFT" justifyV="TOP">
           <Anchors>
-            <Anchor point="TOPLEFT" relativeTo="$parent_EquipmentList" relativePoint="BOTTOMLEFT" />
+            <Anchor point="TOPLEFT" relativeTo="$parent_BuffsList" relativePoint="BOTTOMLEFT" y="-10" />
           </Anchors>
         </FontString>
         <FontString name="$parent_RAFTotal" inherits="Game13FontEnabled" text="0%" justifyH="RIGHT" justifyV="TOP">
           <Anchors>
-            <Anchor point="TOPRIGHT" relativeTo="$parent_EquipmentListTotal" relativePoint="BOTTOMRIGHT" />
+            <Anchor point="TOPRIGHT" relativeTo="$parent_BuffsListTotal" relativePoint="BOTTOMRIGHT" y="-10" />
           </Anchors>
         </FontString>
         <FontString name="$parent_Total" inherits="Game15Font" text="" justifyH="RIGHT" justifyV="TOP">

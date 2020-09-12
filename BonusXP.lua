@@ -3,24 +3,16 @@ local playerFaction, _ = UnitFactionGroup("player");
 local playerLevel = UnitLevel("player");
 local playerLanguage = "en";
 local xpBonusQuest = 0;
-local equipXpBonus = {quest=0};
 local auraXpBonus = {quest=0};
 local auras = {};
-local equipment = {};
-local heirloomXpBonus = {quest=0};
 
 local xpBonus5, xpBonus10, rafBonus = { quest = 5 }, { quest = 10 }, { quest=50 };
-local Heirloom5, Heirloom10, Rubellite5, Heirloom50PvPInstance = 71354, 57353, 258645, 186334;
 
 local isPlayerReadyFired = false;
-local isEquipmentChanged = false;
 local awaitingData = {};
-local awaitingHeirloomData = {};
 local isCurrentRAFBonusActive = false;
 local button = BonusXP_InventoryButton;
 local tooltip = BonusXP_Tooltip;
-local forceCalculateEquipment = false;
-local forceUpdateGearInfo = false;
 local bfaMapBonusIds = {
 -- Kul Tiras
 	[876] = true, -- Continent	Azeroth
@@ -59,18 +51,6 @@ local equipAllSlots = {
 	INVSLOT_OFFHAND,
 	INVSLOT_RANGED,
 	INVSLOT_TABARD,
-};
-
-local heirloomSlotAuras = {
-	[INVSLOT_HEAD]		= Heirloom10,
-	[INVSLOT_SHOULDER]	= Heirloom10,
-	[INVSLOT_CHEST]		= Heirloom10,
-	[INVSLOT_LEGS]		= Heirloom10,
-	[INVSLOT_FINGER1]	= Heirloom5,
-	[INVSLOT_FINGER2]	= Heirloom5,
-	[INVSLOT_BACK]		= Heirloom5,
-	[INVSLOT_TRINKET1]	= Heirloom50PvPInstance,
-	[INVSLOT_TRINKET2]	= Heirloom50PvPInstance,
 };
 
 local itemAuras = {
@@ -119,13 +99,6 @@ local function xpTrinketGetPvpZoneBonus(id)
 		return { quest = 0 };
 	end
 end;
-
-local itemAuraXPInfo = {
-	[Heirloom5] = xpBonus5,    -- "Heirloom Experience Bonus +5%"
-	[Heirloom10] = xpBonus10,  -- "Heirloom Experience Bonus +10%"
-	[Rubellite5] = xpBonus5,   -- "Rubellite - Experience Bonus +5%"
-	[Heirloom50PvPInstance] = { getBonus = xpTrinketGetPvpZoneBonus }
-};
 
 local xpNoExperience = { isBlockXPGainAura = true };
 local xpLegionInvasion = { questId=2 };
@@ -210,7 +183,7 @@ end
 
 function BonusXP:initialize()
 	playerLevel = UnitLevel("player");
-	maxRAFPlayerLevel = MAX_PLAYER_LEVEL_TABLE[GetMaximumExpansionLevel() - 1];
+	maxRAFPlayerLevel = GetMaxLevelForExpansionLevel(GetMaximumExpansionLevel() - 1);
 	isRAFEnabled = C_RecruitAFriend.IsEnabled();
 
 	local l = GetLocale();
@@ -225,14 +198,11 @@ end
 function BonusXP:registerEvents()
 	button:RegisterEvent("PLAYER_LOGIN");
 	button:RegisterEvent("UNIT_AURA");
-	button:RegisterEvent("HEIRLOOMS_UPDATED");
 	button:RegisterEvent("PLAYER_LOGOUT");
 	button:RegisterEvent("PLAYER_LEVEL_UP");
 	button:RegisterEvent("ZONE_CHANGED_NEW_AREA");
 	button:RegisterEvent("ZONE_CHANGED");
 	button:RegisterEvent("ZONE_CHANGED_INDOORS");
-	button:RegisterEvent("PLAYER_EQUIPMENT_CHANGED");
-	button:RegisterEvent("GET_ITEM_INFO_RECEIVED");
 	button:RegisterEvent("PLAYER_XP_UPDATE");
 	button:RegisterEvent("PLAYER_REGEN_DISABLED");
 	button:RegisterEvent("PLAYER_REGEN_ENABLED");
@@ -249,11 +219,9 @@ end
 function BonusXP:calculateBonus()
   isCurrentRAFBonusActive = BonusXP:getGroupInfo();
 
-  equipXpBonus.totalQuest = equipXpBonus.quest + (not isCurrentRAFBonusActive and heirloomXpBonus.quest or 0);
-
   rafBonus.questActive = isCurrentRAFBonusActive and rafBonus.quest or 0;
 
-  xpBonusQuest = (100 + equipXpBonus.totalQuest + auraXpBonus.quest) * (100 + rafBonus.questActive) / 100 - 100;
+  xpBonusQuest = (100 + auraXpBonus.quest) * (100 + rafBonus.questActive) / 100 - 100;
 
   BonusXP:updateUI();
 end
@@ -261,16 +229,9 @@ end
 function BonusXP:updateTooltipSize()
   tooltip:SetHeight(tooltip:GetTop() - BonusXP_Tooltip_Total:GetBottom() + 10);
 
-  local listWidth = math.max(BonusXP_Tooltip_EquipmentList:GetWidth(), BonusXP_Tooltip_BuffsList:GetWidth());
+  local listWidth = BonusXP_Tooltip_BuffsList:GetWidth();
   local width = math.max(listWidth+50, 200);
   tooltip:SetWidth(width);
-end
-
-
-function BonusXP:getItemAuraXpBonus(auraId, itemId)
-	local spinfo = itemAuraXPInfo[auraId];
-
-	return spinfo and spinfo.getBonus and spinfo.getBonus(itemId) or spinfo;
 end
 
 function BonusXP:getSpInfoBonus(spinfo, sr)
@@ -331,7 +292,6 @@ end
 
 function BonusXP:isMemberVisible(memberId, isInDraenorGarrison)
 	local memberDistance, _ = UnitDistanceSquared(memberId);
-	-- UnitIsVisible(memberId)
 	if memberDistance < 10000 then
 		if isInDraenorGarrison then
 			return UnitCanAssist("player", memberId);
@@ -429,129 +389,8 @@ function BonusXP:refreshSpellData()
 	end
 end
 
-function BonusXP:refreshEquipDataSlot(slotId, ...)
-	local itemLink = GetInventoryItemLink("player", slotId);
-	local eqItem, alreadyLoaded, id, name = {
-		slotId = slotId,
-		itemLink = itemLink,
-	}, false, nil, nil;
-	local forceLoad = ...;
-
-	if itemLink then
-		id, name = BonusXP:getItemLinkInfo(itemLink);
-
-		alreadyLoaded = not forceLoad and id and equipItemData[id];
-		if not alreadyLoaded then
-			if id and not name then
-				awaitingData[id] = slotId;
-				name = GetItemInfo(id);
-				if name then
-					awaitingData[id] = nil;
-					itemLink = GetInventoryItemLink("player", slotId);
-				end
-			end
-
-			if name then
-				eqItem = BonusXP:readFullItemData(itemLink);
-				eqItem.slotId = slotId;
-			end
-			id = id or eqItem.id;
-
-			if id then
-				equipItemData[id] = eqItem;
-			end
-		else
-			eqItem = alreadyLoaded;
-		end
-	end
-
-	if eqItem.heirloom then
-		eqItem.heirloom.auraId = heirloomSlotAuras[slotId];
-	end
-
-	slotItemIdMap[slotId] = eqItem.id or nil;
-
-	return eqItem;
-end
-
-function BonusXP:refreshEquipData()
-	local count, eqItem, slotId;
-	local heirloomIDs = _G.C_Heirloom.GetHeirloomItemIDs(); -- required to get heirlooms data ready
-
-	count = #equipAllSlots;
-	for i=1,count do
-		slotId = equipAllSlots[i];
-		BonusXP:refreshEquipDataSlot(slotId);
-	end
-end
-
-
-function BonusXP:calculateEquipment()
-	if 0 < #awaitingHeirloomData then
-		forceUpdateGearInfo = true;
-		return false;
-	end
-	local xpBonus, auraId, item;
-  equipment = {};
-
-	equipXpBonus = { quest=0 };
-	heirloomXpBonus = { quest=0 };
-
-	for slotId, itemId in pairs(slotItemIdMap) do
-		item = itemId and equipItemData[itemId];
-
-		if item then
-			if item.heirloom and playerLevel < item.heirloom.maxLevel then
-				if item.heirloom.auraId then
-					xpBonus = BonusXP:getItemAuraXpBonus(item.heirloom.auraId, itemId);
-
-					if Heirloom50PvPInstance == item.heirloom.auraId then
-						equipXpBonus.quest = equipXpBonus.quest + xpBonus.quest;
-					else
-						heirloomXpBonus.quest = heirloomXpBonus.quest + xpBonus.quest;
-					end
-
-          if xpBonus.quest > 0 then
-            equipment[#equipment+1] = { name = GetItemInfo(itemId), id = itemId, questBonus = xpBonus.quest };
-          end
-				end
-			end
-
-			xpBonus = item.enchantId and BonusXP:getItemAuraXpBonus(item.enchantId, itemId);
-			if xpBonus then
-				equipXpBonus.quest = equipXpBonus.quest + xpBonus.quest;
-			end
-
-			local cnt, gemId = #item.gems;
-			for i=1, cnt do
-				gemId = item.gems[i];
-				auraId = gemId > 0 and itemAuras[gemId]
-				if auraId then
-					xpBonus = BonusXP:getItemAuraXpBonus(auraId, itemId);
-					equipXpBonus.quest = equipXpBonus.quest + xpBonus.quest;
-				end
-			end
-		end
-	end
-
-	return true;
-end
-
-function BonusXP:updateGearInfo()
-	if (#awaitingData) > 0 then
-		return false;
-	end
-	if not BonusXP:calculateEquipment() then
-		forceUpdateGearInfo = true;
-		return false;
-	end
-
-	return true;
-end
-
 function BonusXP:updateTooltipText()
   BonusXP:updateBuffText();
-  BonusXP:updateEquipmentText();
   BonusXP:updateRAFText();
   BonusXP_Tooltip_Total:SetText("Total Bonus XP: " .. xpBonusQuest .. "%");
 end
@@ -585,39 +424,6 @@ function BonusXP:updateRAFText()
   BonusXP_Tooltip_RAFTotal:SetText(((1+rafBonus.questActive/100)*(auraXpBonus.quest+100))-auraXpBonus.quest-100  .. "%");
 end
 
-function BonusXP:updateEquipmentText()
-  local title = BonusXP_Tooltip_EquipmentTitle;
-  local total = BonusXP_Tooltip_EquipmentTotal;
-  local equipmentList = BonusXP_Tooltip_EquipmentList;
-  local equipmentListTotal = BonusXP_Tooltip_EquipmentListTotal;
-
-  BonusXP:updateEquipmentListText();
-
-  if isCurrentRAFBonusActive or equipXpBonus.totalQuest == 0 then
-    title:SetFontObject(Game13FontDisabled)
-
-    total:SetFontObject(Game13FontDisabled)
-    total:SetText("0%");
-
-    if isCurrentRAFBonusActive then
-      equipmentList:SetFontObject(GameNormalNumberFontDisabled)
-      equipmentList:SetText("(Inactive when Recruit-a-Friend is active.)\r");
-
-      equipmentListTotal:SetFontObject(GameNormalNumberFontDisabled)
-      equipmentListTotal:SetText("\r");
-    end
-  else
-    title:SetFontObject(Game13FontEnabled)
-
-    total:SetFontObject(Game13FontEnabled)
-    total:SetText(equipXpBonus.totalQuest .. "%");
-
-    equipmentList:SetFontObject(GameNormalNumberFont)
-    equipmentListTotal:SetFontObject(GameNormalNumberFont)
-  end
-
-end
-
 function BonusXP:updateBuffListText()
   local names, values = "", "";
   for i=1, #auras do
@@ -629,26 +435,13 @@ function BonusXP:updateBuffListText()
   BonusXP_Tooltip_BuffsListTotal:SetText(values);
 end
 
-function BonusXP:updateEquipmentListText()
-  local names, values = "", "";
-  for i=1, #equipment do
-    names = names .. string.format("%s\r", equipment[i].name);
-    values = values .. string.format("%s%%\r", equipment[i].questBonus);
-  end
-
-  BonusXP_Tooltip_EquipmentList:SetText(names);
-  BonusXP_Tooltip_EquipmentListTotal:SetText(values);
-end
-
 function BonusXP:onPlayerReady()
 	if isPlayerReadyFired then return end
 	isPlayerReadyFired = true;
 
 	BonusXP:initialize();
 
-	BonusXP:refreshEquipData();
 	BonusXP:refreshSpellData();
-	BonusXP:updateGearInfo();
 
   BonusXP:calculateBonus();
 end
@@ -663,17 +456,10 @@ function BonusXP:onEventHandler(self, event, ...)
 		end
 
 		button:UnregisterEvent("PLAYER_LOGIN");
-	elseif event == "PLAYER_EQUIPMENT_CHANGED" then
-		BonusXP:refreshEquipDataSlot(arg1);
-		BonusXP:updateGearInfo();
-		isEquipmentChanged = true;
 	elseif event == "UNIT_AURA" and arg1 == "player" then
 		if not isPlayerReadyFired then
 			BonusXP:onPlayerReady();
-		elseif isEquipmentChanged then
-			isEquipmentChanged = false;
 		else
-
 			BonusXP:refreshSpellData();
 		end
 	elseif event == "ZONE_CHANGED_NEW_AREA" or event == "ZONE_CHANGED" or event == "ZONE_CHANGED_INDOORS" then
@@ -684,50 +470,6 @@ function BonusXP:onEventHandler(self, event, ...)
 		local isInPvPArea = instanceType=="pvp" or instanceType=="arena";
 		local isAreaChanged = isInPvPArea ~= isInPvPInstance;
 		isInPvPInstance = isInPvPArea;
-		if isAreaChanged then BonusXP:updateGearInfo(); end
-
-	elseif event == "PLAYER_LEVEL_UP" then
-		playerLevel = arg1 or UnitLevel("player");
-		BonusXP:refreshEquipData();
-		BonusXP:updateGearInfo();
-	elseif event == "GET_ITEM_INFO_RECEIVED" then
-		local slotId = awaitingData[arg1];
-
-		if slotId then
-			awaitingData[arg1] = nil;
-
-			BonusXP:updateGearInfo();
-		end
-	elseif event == "HEIRLOOMS_UPDATED" and arg2=="UPGRADE" then
-		local item = equipItemData[arg1];
-		if item then
-			local olditemMaxLevel = item.heirloom.maxLevel;
-			item.heirloom.maxLevel = select(10, C_Heirloom.GetHeirloomInfo(arg1));
-
-			if slotItemIdMap[item.slotId] == arg1 and playerLevel > olditemMaxLevel and playerLevel < item.heirloom.maxLevel then
-				BonusXP:updateGearInfo();
-			end
-		end
-	elseif event == "HEIRLOOMS_UPDATED" then
-		BonusXP:onPlayerReady();
-		local cnt = #awaitingHeirloomData;
-		if not arg1 and not arg2 and cnt > 0 then
-			for i=1, cnt do
-				local itemId = awaitingHeirloomData[i];
-				local item = equipItemData[itemId];
-				item.heirloom.maxLevel = select(10, C_Heirloom.GetHeirloomInfo(itemId));
-				if item.heirloom.maxLevel then
-					awaitingHeirloomData[i] = nil;
-				end
-			end
-			if forceUpdateGearInfo then
-				forceUpdateGearInfo = false;
-				BonusXP:updateGearInfo();
-			elseif forceCalculateEquipment then
-				forceCalculateEquipment = false;
-				BonusXP:calculateEquipment();
-			end
-		end
 	elseif event == "PLAYER_REGEN_DISABLED" then
 		if button:IsEventRegistered("UNIT_AURA") then
 			button:UnregisterEvent("UNIT_AURA");
@@ -742,28 +484,6 @@ function BonusXP:onEventHandler(self, event, ...)
 	end
 
   BonusXP:calculateBonus();
-end
-
-
-function BonusXP:readFullItemData(itemLink)
-	local id, _,  enchantId, jewels;
-	id, _, _, _, _, _, enchantId, jewels = BonusXP:getItemLinkInfo(itemLink);
-
-	local isHeirloom =
-			C_Heirloom.PlayerHasHeirloom(id);
-	local item = {
-		id = id,
-		gems = jewels,
-		enchantId = enchantId,
-		heirloom = isHeirloom and {
-			maxLevel = select(10, C_Heirloom.GetHeirloomInfo(id));
-		} or nil
-	};
-	if item.heirloom and not item.heirloom.maxLevel then
-		table.insert(awaitingHeirloomData, id);
-	end
-
-	return item;
 end
 
 function BonusXP:setup()
@@ -792,75 +512,8 @@ function BonusXP:updateButton()
   button:SetText(string.format("Bonus XP: %s%%\r", xpBonusQuest));
 end
 
-function BonusXP:getItemLinkInfo(itemLink)
-	if not itemLink then return nil end
-
-	local splRes = { strsplit(":", itemLink) };
-
-	local prefix, itemId, enchantId, jewelId1, jewelId2, jewelId3, jewelId4, suffixId, uniqueId, linkLevel, specializationID, upgradeTypeID, instanceDifficultyId, numBonusIds = unpack(splRes);
-	numBonusIds = tonumber(numBonusIds) or 0;
-
-	local bonusIds = {};
-	for i = 1, numBonusIds do
-		local bonusId = splRes[14+i];
-		table.insert(bonusIds, tonumber(bonusId) or 0)
-	end
-
-	local segmentsCount = #splRes;
-	local suffix = splRes[segmentsCount];
-	local _,_, color, lType = string.find(prefix, "|c(%x*)|H([^:]*)");
-	local _,_, lastValue, name = string.find(suffix, "([^|]*)|h%[?([^%[%]]*)%]?|h|?r?");
-	splRes[segmentsCount] = lastValue
-
-  local upgradeValue = upgradeTypeID and upgradeTypeID ~= "" and (tonumber(splRes[15 + numBonusIds]) or 0) or nil;
-
-	local relicBonuses = {};
-
-	if splRes[16 + numBonusIds] == "1" then -- Relic bonus present
-		local pos = 17 + numBonusIds;
-		local relicNumBonusIDs, relicBonusID, relic;
-
-		-- read all relicXBonusIDs
-		while pos <= segmentsCount and #relicBonuses < 4 do
-			relicNumBonusIDs = tonumber(splRes[pos]) or 0;
-			relic = {};
-			for i=1, relicNumBonusIDs do
-				relicBonusID = tonumber(splRes[pos + i]) or 0;
-				table.insert(relic, relicBonusID);
-			end
-			pos = pos + relicNumBonusIDs + 1;
-			table.insert(relicBonuses, relic);
-		end
-	end
-
-	local found = false;
-	local jewels = {};
-	local gems = { jewelId4, jewelId3, jewelId2, jewelId1 };
-
-	for i = 1, 4 do
-		local g = tonumber(gems[i]) or 0;
-		found = found or g > 0;
-		if found then
-			table.insert(jewels, 1, g);
-		end
-	end
-
-	return tonumber(itemId), name, tonumber(linkLevel), lType, tonumber(suffixId), color, tonumber(enchantId), jewels, bonusIds, tonumber(uniqueId), tonumber(upgradeTypeID), tonumber(instanceDifficultyId), tonumber(specializationID), upgradeValue, relicBonuses, segmentsCount
-end
-
 function BonusXP:getDetails()
   return xpBonusQuest .. "%";
-end
-
-if not _G.strsplit then
-	function _G.strsplit(sep, inputstr)
-		sep=sep or '%s'
-		local t={}
-		for field,s in string.gmatch(inputstr, "([^"..sep.."]*)("..sep.."?)") do
-			table.insert(t,field)
-			if s=="" then return unpack(t) end
-		end
-	end
 end
 
 _G.GetBonusXP = function()
