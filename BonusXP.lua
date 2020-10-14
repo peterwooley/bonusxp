@@ -315,7 +315,7 @@ function BonusXP:getGroupInfo()
 
 		local isRafUsable = isRAFEnabled and playerLevel < maxRAFPlayerLevel;
 		local maxPlayerLevelOfExpansionForPlayer = GetMaxLevelForExpansionLevel(nearestExpansionLevel);
-		local isInDraenorGarrison = C_Garrison.IsPlayerInGarrison(LE_GARRISON_TYPE_6_0);
+		local isInDraenorGarrison = C_Garrison.IsPlayerInGarrison(Enum.GarrisonType.Type_6_0);
 
 		local notABnFriend = { isFriend = false };
         while index <= numPartyMembers do
