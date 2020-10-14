@@ -314,7 +314,7 @@ function BonusXP:getGroupInfo()
 		local nearestExpansionLevel = GetExpansionForLevel(playerEffLevel);
 
 		local isRafUsable = isRAFEnabled and playerLevel < maxRAFPlayerLevel;
-		local maxPlayerLevelOfExpansionForPlayer = MAX_PLAYER_LEVEL_TABLE[nearestExpansionLevel];
+		local maxPlayerLevelOfExpansionForPlayer = GetMaxLevelForExpansionLevel(nearestExpansionLevel);
 		local isInDraenorGarrison = C_Garrison.IsPlayerInGarrison(LE_GARRISON_TYPE_6_0);
 
 		local notABnFriend = { isFriend = false };
