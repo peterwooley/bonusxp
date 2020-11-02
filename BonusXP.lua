@@ -123,7 +123,7 @@ local SpellXPInfo = {
 	[282559]	= { questId=1 },    -- "War Mode" (Horde-specific in Orgrimmar)
 	[130283]	= { questId=1 },    -- "Enlightenment" 50% Monk
 	[127250]	= { questId=1 },    -- "Ancient Knowledge" 300%
-	[277952]	= { questId=3 },	 	-- "WoW's 14th Anniversary"
+	[277952]	= { questId=1 },	 	-- WoW's Anniversary
 	[46668]		= { questId=2 },	 	-- "WHEE!" Darkmoon Carusel
 	[281561]	= xpNoExperience,	 	-- = "Uncontested" -100%
 	[212846]	= { questId=2 },  	-- "The Council's Wisdom" 5%
