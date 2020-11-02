@@ -509,11 +509,7 @@ function BonusXP:setup()
     if button:IsVisible() then return end
 
     local stats = { CharacterStatsPane:GetChildren() }
-    --for i, child in ipairs(stats) do
-      ---- do something to each child here
-      --print(dump(child));
-    --end
-    
+
     print(dump(CharacterStatsPane.EnhancementsCategory));
 
     button:SetParent(CharacterStatsPane.EnhancementsCategory);
