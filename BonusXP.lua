@@ -182,6 +182,8 @@ function BonusXP:getContinentId(event)
 end
 
 function BonusXP:initialize()
+
+
 	playerLevel = UnitLevel("player");
 	maxRAFPlayerLevel = GetMaxLevelForExpansionLevel(GetMaximumExpansionLevel() - 1);
 	isRAFEnabled = C_RecruitAFriend.IsEnabled();
@@ -223,7 +225,7 @@ function BonusXP:calculateBonus()
 
   xpBonusQuest = (100 + auraXpBonus.quest) * (100 + rafBonus.questActive) / 100 - 100;
 
-  BonusXP:updateUI();
+  --BonusXP:updateUI();
 end
 
 function BonusXP:updateTooltipSize()
@@ -392,7 +394,7 @@ end
 function BonusXP:updateTooltipText()
   BonusXP:updateBuffText();
   BonusXP:updateRAFText();
-  BonusXP_Tooltip_Total:SetText("Total Bonus XP: " .. xpBonusQuest .. "%");
+  button.titleText = "Total Bonus XP: " .. xpBonusQuest .. "%";
 end
 
 function BonusXP:updateBuffText()
@@ -488,13 +490,13 @@ end
 
 function BonusXP:setup()
 
-  button:SetText("Bonus XP")
-	button:SetScript("OnEnter", function()
-    tooltip:Show();
-	end);
-	button:SetScript("OnLeave", function()
-    tooltip:Hide();
-	end);
+  button.Title:SetText("Bonus XP")
+	--button:SetScript("OnEnter", function()
+    --tooltip:Show();
+	--end);
+	--button:SetScript("OnLeave", function()
+    --tooltip:Hide();
+	--end);
 
 	tooltip:Hide();
 
@@ -503,13 +505,27 @@ function BonusXP:setup()
   button:SetScript("OnEvent", function(self, ...)
 		BonusXP:onEventHandler(f, ...);
 	end);
-  button:SetScript("OnShow", function(self, ...)
-		BonusXP:onEventHandler(f, ...);
+  CharacterStatsPane:SetScript("OnShow", function(self, ...)
+    if button:IsVisible() then return end
+
+    local stats = { CharacterStatsPane:GetChildren() }
+    --for i, child in ipairs(stats) do
+      ---- do something to each child here
+      --print(dump(child));
+    --end
+    
+    print(dump(CharacterStatsPane.EnhancementsCategory));
+
+    button:SetParent(CharacterStatsPane.EnhancementsCategory);
+    button:SetPoint("TOP", stats[#stats-1], "BOTTOM", 0, -5);
+    button:Show();
+
+    BonusXP:onEventHandler(f, ...);
 	end);
 end
 
 function BonusXP:updateButton()
-  button:SetText(string.format("Bonus XP: %s%%\r", xpBonusQuest));
+  button.titleText = string.format("Bonus XP: %s%%\r", xpBonusQuest);
 end
 
 function BonusXP:getDetails()

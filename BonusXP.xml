@@ -14,23 +14,17 @@
   </Font>
 
   <!-- Main Button in Character Screen -->
-  <Button name="BonusXP_InventoryButton" parent="CharacterStatsPane" inherits="UIPanelButtonGrayTemplate">
-    <Size><AbsDimension x="130" y="20"/></Size>
-    <Anchors>
-      <Anchor point="BOTTOMLEFT">
-        <Offset><AbsDimension x="10" y="10"/></Offset>
-      </Anchor>
-    </Anchors>
-  </Button>
+  <Frame name="BonusXP_InventoryButton" hidden="true" inherits="CharacterStatFrameCategoryTemplate">
+    <!--<Anchors>-->
+      <!--<Anchor point="BOTTOMLEFT">-->
+        <!--<Offset><AbsDimension x="10" y="10"/></Offset>-->
+      <!--</Anchor>-->
+    <!--</Anchors>-->
+  </Frame>
 
   <!-- Tooltip -->
-  <Frame name="BonusXP_Tooltip" parent="BonusXP_InventoryButton" inherits="TooltipBorderedFrameTemplate" frameStrata="TOOLTIP">
+  <Frame name="BonusXP_Tooltip" inherits="TooltipBorderedFrameTemplate" frameStrata="TOOLTIP">
     <Size><AbsDimension x="200" y="300"/></Size>
-    <Anchors>
-      <Anchor point="TOPLEFT">
-        <Offset><AbsDimension x="0" y="-20"/></Offset>
-      </Anchor>
-    </Anchors>
     <Layers>
       <Layer name="$parent_Buffs" parent="BonusXP_Tooltip">
         <FontString name="$parent_BuffsTitle" inherits="Game13FontEnabled" text="Buffs" justifyH="LEFT" justifyV="TOP">
