@@ -14,8 +14,7 @@
   </Font>
 
   <!-- Main Button in Character Screen -->
-  <Button name="BonusXP_InventoryButton" parent="CharacterStatsPane" inherits="UIPanelButtonGrayTemplate">
-    <Size><AbsDimension x="130" y="20"/></Size>
+  <Button name="BonusXP_InventoryButton" parent="CharacterStatsPane" inherits="SharedButtonSmallTemplate">
     <Anchors>
       <Anchor point="BOTTOMLEFT">
         <Offset><AbsDimension x="10" y="10"/></Offset>
