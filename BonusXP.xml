@@ -53,23 +53,6 @@
           </Anchors>
         </FontString>
       </Layer>
-      <Layer name="$parent_RAF">
-        <FontString name="$parent_RAFTitle" inherits="Game13FontEnabled" text="Recruit-a-Friend" justifyH="LEFT" justifyV="TOP">
-          <Anchors>
-            <Anchor point="TOPLEFT" relativeTo="$parent_BuffsList" relativePoint="BOTTOMLEFT" y="-10" />
-          </Anchors>
-        </FontString>
-        <FontString name="$parent_RAFTotal" inherits="Game13FontEnabled" text="0%" justifyH="RIGHT" justifyV="TOP">
-          <Anchors>
-            <Anchor point="TOPRIGHT" relativeTo="$parent_BuffsListTotal" relativePoint="BOTTOMRIGHT" y="-10" />
-          </Anchors>
-        </FontString>
-        <FontString name="$parent_Total" inherits="Game15Font" text="" justifyH="RIGHT" justifyV="TOP">
-          <Anchors>
-            <Anchor point="TOPRIGHT" relativeTo="$parent_RAFTotal" relativePoint="BOTTOMRIGHT" y="-15"/>
-          </Anchors>
-        </FontString>
-      </Layer>
     </Layers>
   </Frame>
 </Ui>

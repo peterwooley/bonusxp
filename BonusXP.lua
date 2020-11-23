@@ -6,11 +6,10 @@ local xpBonusQuest = 0;
 local auraXpBonus = {quest=0};
 local auras = {};
 
-local xpBonus5, xpBonus10, rafBonus = { quest = 5 }, { quest = 10 }, { quest=50 };
+local xpBonus5, xpBonus10 = { quest = 5 }, { quest = 10 };
 
 local isPlayerReadyFired = false;
 local awaitingData = {};
-local isCurrentRAFBonusActive = false;
 local button = BonusXP_InventoryButton;
 local tooltip = BonusXP_Tooltip;
 local bfaMapBonusIds = {
@@ -162,9 +161,6 @@ local SpellXPInfo = {
 local AnniversaryId = nil;
 local AnniversaryWorkId = 277952;
 
-local maxRAFPlayerLevel = nil;
-local isRAFEnabled = nil;
-
 function BonusXP:getMapTopParentInfo(mapID)
   local mapInfo = mapID and C_Map.GetMapInfo(mapID) or {};
 
@@ -183,8 +179,6 @@ end
 
 function BonusXP:initialize()
 	playerLevel = UnitLevel("player");
-	maxRAFPlayerLevel = GetMaxLevelForExpansionLevel(GetMaximumExpansionLevel() - 1);
-	isRAFEnabled = C_RecruitAFriend.IsEnabled();
 
 	local l = GetLocale();
 	playerLanguage = l and string.sub(l, 1, 2) or "en";
@@ -192,7 +186,6 @@ function BonusXP:initialize()
 	local _, instanceType = IsInInstance();
 	isInPvPInstance = instanceType=="pvp" or instanceType=="arena";
 
-	isCurrentRAFBonusActive = BonusXP:getGroupInfo();
 end
 
 function BonusXP:registerEvents()
@@ -217,17 +210,12 @@ function BonusXP:updateUI()
 end
 
 function BonusXP:calculateBonus()
-  isCurrentRAFBonusActive = BonusXP:getGroupInfo();
-
-  rafBonus.questActive = isCurrentRAFBonusActive and rafBonus.quest or 0;
-
-  xpBonusQuest = (100 + auraXpBonus.quest) * (100 + rafBonus.questActive) / 100 - 100;
-
+  xpBonusQuest = auraXpBonus.quest;
   BonusXP:updateUI();
 end
 
 function BonusXP:updateTooltipSize()
-  tooltip:SetHeight(tooltip:GetTop() - BonusXP_Tooltip_Total:GetBottom() + 10);
+  tooltip:SetHeight(tooltip:GetTop() - BonusXP_Tooltip_BuffsListTotal:GetBottom() + 10);
 
   local listWidth = BonusXP_Tooltip_BuffsList:GetWidth();
   local width = math.max(listWidth+50, 200);
@@ -290,71 +278,6 @@ function BonusXP:getAuraXpBonus(sr, canbeAnniversary)
 	return result;
 end
 
-function BonusXP:isMemberVisible(memberId, isInDraenorGarrison)
-	local memberDistance, _ = UnitDistanceSquared(memberId);
-	if memberDistance < 10000 then
-		if isInDraenorGarrison then
-			return UnitCanAssist("player", memberId);
-		end
-		return true;
-	end
-	return false;
-end
-
-function BonusXP:getGroupInfo()
-	local closeMemberCount, closeFriendCount = 1, 1;
-	local minLevelRange, minEffLevelRange = 1000, 1000;
-	local isSameExpansion = false;
-	local isInQuestLevelRange = false;
-
-	local numPartyMembers = GetNumSubgroupMembers();
-    if numPartyMembers > 0 then
-        local index = 1;
-		local playerEffLevel = UnitEffectiveLevel("player");
-		local nearestExpansionLevel = GetExpansionForLevel(playerEffLevel);
-
-		local isRafUsable = isRAFEnabled and playerLevel < maxRAFPlayerLevel;
-		local maxPlayerLevelOfExpansionForPlayer = GetMaxLevelForExpansionLevel(nearestExpansionLevel);
-		local isInDraenorGarrison = C_Garrison.IsPlayerInGarrison(Enum.GarrisonType.Type_6_0);
-
-		local notABnFriend = { isFriend = false };
-        while index <= numPartyMembers do
-            local memberId = "party" .. index;
-            if UnitIsPlayer(memberId) then
-				if BonusXP:isMemberVisible(memberId, isInDraenorGarrison) then
-					closeMemberCount = closeMemberCount + 1;
-
-					local memberGuid = UnitGUID(memberId);
-
-					if C_FriendList.IsFriend(memberGuid) or (C_BattleNet.GetAccountInfoByGUID(memberGuid) or notABnFriend).isFriend then
-						closeFriendCount = closeFriendCount + 1;
-
-						if isRafUsable and IsRecruitAFriendLinked(memberGuid) then
-							local memberEffLevel = UnitEffectiveLevel(memberId);
-							local memberLevel = UnitLevel(memberId);
-
-							if not isSameExpansion then
-								isSameExpansion = GetExpansionForLevel(memberEffLevel) == nearestExpansionLevel;
-							end
-
-							if not isInQuestLevelRange then
-								isInQuestLevelRange = (maxPlayerLevelOfExpansionForPlayer + 5) > memberLevel;
-							end
-
-							minEffLevelRange = math.min(math.abs(memberEffLevel - playerEffLevel), minEffLevelRange);
-							minLevelRange = math.min(math.abs(memberLevel - playerLevel), minLevelRange);
-						end
-					end
-				end
-            end
-            index = index + 1;
-        end
-    end
-
-	return	minEffLevelRange < 5 or isSameExpansion or isInQuestLevelRange;
-end
-
-
 function BonusXP:refreshSpellData()
 	local name, spellId;
 
@@ -391,8 +314,6 @@ end
 
 function BonusXP:updateTooltipText()
   BonusXP:updateBuffText();
-  BonusXP:updateRAFText();
-  BonusXP_Tooltip_Total:SetText("Total Bonus XP: " .. xpBonusQuest .. "%");
 end
 
 function BonusXP:updateBuffText()
@@ -408,20 +329,6 @@ function BonusXP:updateBuffText()
 
   total:SetText(auraXpBonus.quest .. "%");
 	BonusXP:updateBuffListText();
-end
-
-function BonusXP:updateRAFText()
-  local title = BonusXP_Tooltip_RAFTitle;
-  local total = BonusXP_Tooltip_RAFTotal;
-  if isCurrentRAFBonusActive then
-    title:SetFontObject(Game13FontEnabled)
-    total:SetFontObject(Game13FontEnabled)
-  else
-    title:SetFontObject(Game13FontDisabled)
-    total:SetFontObject(Game13FontDisabled)
-  end
-
-  BonusXP_Tooltip_RAFTotal:SetText(((1+rafBonus.questActive/100)*(auraXpBonus.quest+100))-auraXpBonus.quest-100  .. "%");
 end
 
 function BonusXP:updateBuffListText()
@@ -440,9 +347,7 @@ function BonusXP:onPlayerReady()
 	isPlayerReadyFired = true;
 
 	BonusXP:initialize();
-
 	BonusXP:refreshSpellData();
-
   BonusXP:calculateBonus();
 end
 
