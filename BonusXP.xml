@@ -14,10 +14,10 @@
   </Font>
 
   <!-- Main Button in Character Screen -->
-  <Button name="BonusXP_InventoryButton" parent="CharacterStatsPane" inherits="SharedButtonSmallTemplate">
+  <Button name="BonusXP_InventoryButton" parent="CharacterFrame" inherits="SharedButtonSmallTemplate" frameStrata="LOW">
     <Anchors>
-      <Anchor point="BOTTOMLEFT">
-        <Offset><AbsDimension x="10" y="10"/></Offset>
+      <Anchor point="TOPRIGHT" relativePoint="BOTTOMRIGHT">
+        <Offset><AbsDimension x="0" y="0"/></Offset>
       </Anchor>
     </Anchors>
   </Button>
