@@ -2,7 +2,7 @@
 ## Title: Bonus XP
 ## Notes: See your bonus XP in real-time
 ## Author: peterwooley
-## Version: 2.1.2
+## Version: 2.1.3
 ## LoadOnDemand: 0
 ## DefaultState: enabled
 

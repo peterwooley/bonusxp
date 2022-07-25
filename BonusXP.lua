@@ -393,7 +393,7 @@ end
 
 function BonusXP:setup()
 
-  button:SetText("Bonus XP")
+  button:SetText("+XP")
 	button:SetScript("OnEnter", function()
     tooltip:Show();
 	end);
@@ -414,7 +414,7 @@ function BonusXP:setup()
 end
 
 function BonusXP:updateButton()
-  button:SetText(string.format("Bonus XP: %s%%\r", xpBonusQuest));
+  button:SetText(string.format("+XP: %s%%\r", xpBonusQuest));
 end
 
 function BonusXP:getDetails()
