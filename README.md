@@ -6,14 +6,13 @@ Now you'll know!
 
 Open the Character screen (C) and find your Bonus XP percentage at the bottom of the Character Stats pane. Hover over to see the buffs contributing to your bonus.
 
-<img src="screenshots/raf.png" alt="Bonus XP Add-On with Recruit-a-Friend active">
-<img src="screenshots/inactive.png" alt="Bonus XP Add-On with inactive section headers">
+<img src="screenshots/default.jpg" alt="Bonus XP Add-On with Winds of Wisdom and War Mode enabled">
 
 ## API
 This add-on exposes a global function to get the current Bonus XP.
 
 ```lua
-GetBonusXP(); -- Returns a string of the bonus XP, such as: "170%"
+GetBonusXP(); -- Returns a string of the bonus XP, such as: "65%"
 ```
 
 ## Thanks
