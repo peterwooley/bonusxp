@@ -30,7 +30,7 @@
       </Anchor>
     </Anchors>
     <Layers>
-      <Layer name="$parent_Buffs" parent="BonusXP_Tooltip">
+      <Layer name="$parent_Buffs">
         <FontString name="$parent_BuffsTitle" inherits="Game13FontEnabled" text="Buffs" justifyH="LEFT" justifyV="TOP">
           <Anchors>
             <Anchor point="TOPLEFT" relativeTo="BonusXP_Tooltip" x="10" y="-10" />
