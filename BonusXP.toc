@@ -1,4 +1,4 @@
-## Interface: 90207
+## Interface: 100002
 ## Title: Bonus XP
 ## Notes: See your bonus XP in real-time
 ## Author: peterwooley
