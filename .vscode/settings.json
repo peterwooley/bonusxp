@@ -1,0 +1,12 @@
+{
+    "Lua.diagnostics.globals": [
+        "BonusXP_Tooltip_BuffsList",
+        "BonusXP_Tooltip_BuffsListTotal",
+        "BonusXP_Tooltip_BuffsTitle",
+        "BonusXP_Tooltip_BuffsTotal",
+        "Game13FontEnabled",
+        "Game13FontDisabled",
+        "BonusXP_InventoryButton",
+        "BonusXP_Tooltip"
+    ]
+}

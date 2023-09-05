@@ -1,15 +1,10 @@
 ﻿local _, BonusXP = ...
-local playerFaction, _ = UnitFactionGroup("player");
 local playerLevel = UnitLevel("player");
 local playerLanguage = "en";
 local xpBonusQuest = 0;
 local auraXpBonus = {quest=0};
 local auras = {};
-
-local xpBonus5, xpBonus10 = { quest = 5 }, { quest = 10 };
-
 local isPlayerReadyFired = false;
-local awaitingData = {};
 local button = BonusXP_InventoryButton;
 local tooltip = BonusXP_Tooltip;
 local bfaMapBonusIds = {
@@ -24,37 +19,9 @@ local bfaMapBonusIds = {
 };
 local CosmosId = 946;
 local AzerothId = 947;
-local currentPlayerZoneId = -1;
 local currentPlayerContinent = -1;
 local isInPvPInstance = nil;
 local currentUiMapID = nil;
-local equipItemData = {};
-local equipAllSlots = {
-	INVSLOT_AMMO,
-	INVSLOT_HEAD,
-	INVSLOT_NECK,
-	INVSLOT_SHOULDER,
-	INVSLOT_BODY, -- Shirt
-	INVSLOT_CHEST,
-	INVSLOT_WAIST,
-	INVSLOT_LEGS,
-	INVSLOT_FEET,
-	INVSLOT_WRIST,
-	INVSLOT_HAND,
-	INVSLOT_FINGER1,
-	INVSLOT_FINGER2,
-	INVSLOT_TRINKET1,
-	INVSLOT_TRINKET2,
-	INVSLOT_BACK,
-	INVSLOT_MAINHAND,
-	INVSLOT_OFFHAND,
-	INVSLOT_RANGED,
-	INVSLOT_TABARD,
-};
-
-local itemAuras = {
-	[153714] = Rubellite5,
-};
 
 local anniversaryPattern = {
 	["en"] = { "WoW(.*)niversary" },
@@ -406,10 +373,10 @@ function BonusXP:setup()
   BonusXP:registerEvents();
 
   button:SetScript("OnEvent", function(self, ...)
-		BonusXP:onEventHandler(f, ...);
+		BonusXP:onEventHandler(_, ...);
 	end);
   button:SetScript("OnShow", function(self, ...)
-		BonusXP:onEventHandler(f, ...);
+		BonusXP:onEventHandler(_, ...);
 	end);
 end
 
