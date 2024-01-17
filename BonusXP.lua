@@ -362,10 +362,12 @@ function BonusXP:setup()
 
   button:SetText("+XP")
 	button:SetScript("OnEnter", function()
-    tooltip:Show();
+    	if(button:IsEnabled()) then
+			tooltip:Show();
+		end
 	end);
 	button:SetScript("OnLeave", function()
-    tooltip:Hide();
+    	tooltip:Hide();
 	end);
 
 	tooltip:Hide();
@@ -381,6 +383,12 @@ function BonusXP:setup()
 end
 
 function BonusXP:updateButton()
+  if xpBonusQuest > 0 then
+	button:Enable()
+  else
+	button:Disable()
+  end
+  
   button:SetText(string.format("+XP: %s%%\r", xpBonusQuest));
 end
 
