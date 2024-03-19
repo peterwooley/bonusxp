@@ -1,4 +1,4 @@
-## Interface: 100205
+## Interface: 100206
 ## Title: Bonus XP
 ## Notes: See your bonus XP in real-time
 ## IconTexture: Interface\AddOns\BonusXP\icon.png
