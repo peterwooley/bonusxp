@@ -128,6 +128,21 @@ local SpellXPInfo = {
 local AnniversaryId = nil;
 local AnniversaryWorkId = 277952;
 
+-- Borrowed from WeakAuras
+-- https://github.com/WeakAuras/WeakAuras2/blob/05f7fd7ea36a78dcf854f35263c60024db07da30/WeakAuras/AuraEnvironment.lua#L14
+local UnitAura = UnitAura
+if UnitAura == nil then
+  --- Deprecated in 10.2.5
+  UnitAura = function(unitToken, index, filter)
+		local auraData = C_UnitAuras.GetAuraDataByIndex(unitToken, index, filter)
+		if not auraData then
+			return nil;
+		end
+
+		return AuraUtil.UnpackAuraData(auraData)
+	end
+end
+
 function BonusXP:getMapTopParentInfo(mapID)
   local mapInfo = mapID and C_Map.GetMapInfo(mapID) or {};
 
