@@ -118,6 +118,10 @@ local SpellXPInfo = {
 	[178119] = { questId = 1 }, -- "Accelerated Learning" 20%
 	[210072] = { questId = 1 }, -- "_JKL - live update crash test 2" -100%
 	[230272] = xpNoExperience, -- Stranglethorn Streaker -100%
+	[455050] = { questId = 1 }, -- "Blessings of the Bronze Dragonflight" 10%
+	[430191] = { questId = 1 }, -- "Warband Mentored Leveling" 5-25%
+	[95987]  = { quest = 10 }, -- "Unburdened" 10% (API does not return XP bonus)
+	[24705]  = { quest = 10 }, -- "Grim Visage" 10% (API does not return XP bonus)
 
 	-- Next two auras have tooltip with 10% XP bonus but no XP bonus value provided
 	[290337] = { questId = 2, getBonus = xpBfaGetZoneBonus }, -- "Taste of Victory" 10%
