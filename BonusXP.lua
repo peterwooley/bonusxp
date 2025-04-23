@@ -122,6 +122,8 @@ local SpellXPInfo = {
 	[430191] = { questId = 1 }, -- "Warband Mentored Leveling" 5-25%
 	[95987]  = { quest = 10 }, -- "Unburdened" 10% (API does not return XP bonus)
 	[24705]  = { quest = 10 }, -- "Grim Visage" 10% (API does not return XP bonus)
+	[1214848]= { quest = 20 }, -- "Winds of Mysterious Fortune" 20% for levels 10-80
+	[1221184]= { questId = 1}, -- "Surge of Mysterious Wisdom" 10% for levels 79 or below
 
 	-- Next two auras have tooltip with 10% XP bonus but no XP bonus value provided
 	[290337] = { questId = 2, getBonus = xpBfaGetZoneBonus }, -- "Taste of Victory" 10%
