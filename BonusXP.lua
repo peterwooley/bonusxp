@@ -414,6 +414,108 @@ function BonusXP:updateButton()
 	button:SetText(string.format("+XP: %s%%\r", xpBonusQuest));
 end
 
+function BonusXP:createDebugFrame()
+	if BonusXP.debugFrame then
+		return BonusXP.debugFrame;
+	end
+
+	local frame = CreateFrame("Frame", "BonusXPDebugFrame", UIParent, "BasicFrameTemplateWithInset")
+	frame:SetSize(700, 500)
+	frame:SetPoint("CENTER")
+	frame:SetMovable(true)
+	frame:EnableMouse(true)
+	frame:RegisterForDrag("LeftButton")
+	frame:SetScript("OnDragStart", frame.StartMoving)
+	frame:SetScript("OnDragStop", frame.StopMovingOrSizing)
+	frame:SetFrameStrata("DIALOG")
+	frame:SetClampedToScreen(true)
+
+	local title = frame.TitleText or frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	if frame.TitleText then
+		title:SetText("BonusXP Aura Debug")
+	else
+		title:SetPoint("TOP", frame, "TOP", 0, -16)
+		title:SetText("BonusXP Aura Debug")
+	end
+
+	local scrollFrame = CreateFrame("ScrollFrame", nil, frame, "UIPanelScrollFrameTemplate")
+	scrollFrame:SetPoint("TOPLEFT", frame, "TOPLEFT", 20, -40)
+	scrollFrame:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -30, 20)
+
+	local editBox = CreateFrame("EditBox", nil, scrollFrame)
+	editBox:SetMultiLine(true)
+	editBox:SetFontObject(GameFontHighlightSmall)
+	editBox:SetWidth(scrollFrame:GetWidth() - 20)
+	editBox:SetHeight(2000)
+	editBox:SetTextInsets(8, 8, 8, 8)
+	editBox:SetAutoFocus(false)
+	editBox:SetMaxLetters(0)
+	editBox:EnableMouse(true)
+	editBox:SetScript("OnEscapePressed", function()
+		frame:Hide();
+	end)
+	scrollFrame:SetScrollChild(editBox)
+
+	frame.title = title
+	frame.scrollFrame = scrollFrame
+	frame.editBox = editBox
+	BonusXP.debugFrame = frame
+
+	return frame
+end
+
+function BonusXP:showDebugFrame(text)
+	local frame = BonusXP:createDebugFrame();
+	frame.editBox:SetText(text);
+	frame.editBox:SetCursorPosition(0);
+	frame.editBox:HighlightText();
+	frame.editBox:SetFocus();
+	frame.editBox:SetScript("OnShow", function()
+		frame.editBox:SetFocus();
+		frame.editBox:HighlightText();
+	end)
+	frame:Show();
+end
+
+function BonusXP:debugAuraData()
+	local lines = {
+		"BonusXP aura debug dump",
+		string.format("player=%s level=%d currentBonus=%s", UnitName("player") or "unknown", UnitLevel("player") or 0, tostring(xpBonusQuest) .. "%")
+	};
+
+	for i = 1, 40 do
+		local sr = { UnitAura("player", i) };
+		local name = sr[1];
+		if not name then
+			break;
+		end
+
+		local spellId = sr[10];
+		local parsedBonus = BonusXP:getAuraXpBonus(sr, false);
+		local spellInfo = SpellXPInfo[spellId];
+		local candidateOffsets = {};
+
+		for questId = 1, 5 do
+			candidateOffsets[#candidateOffsets + 1] = string.format("questId=%d -> sr[%d]=%s", questId, 15 + questId, tostring(sr[15 + questId]));
+		end
+
+		lines[#lines + 1] = string.format(
+			"aura[%d]: name=%s | spellId=%s | count=%s | parsedQuest=%s | spellInfo=%s | %s",
+			i,
+			name,
+			tostring(spellId),
+			tostring(sr[3] or 0),
+			tostring(parsedBonus.quest or 0),
+			spellInfo and string.format("{quest=%s questId=%s}", tostring(spellInfo.quest or "nil"), tostring(spellInfo.questId or "nil")) or "nil",
+			table.concat(candidateOffsets, " | ")
+		);
+	end
+
+	local text = table.concat(lines, "\n");
+	BonusXP:showDebugFrame(text);
+	DEFAULT_CHAT_FRAME:AddMessage("BonusXP aura debug opened. Select and copy the text from the window.", 0.2, 1, 0.2);
+end
+
 function BonusXP:getDetails()
 	return xpBonusQuest .. "%";
 end
@@ -421,5 +523,10 @@ end
 _G.GetBonusXP = function()
 	return BonusXP:getDetails();
 end;
+
+SLASH_BONUSXPDEBUG1 = "/bxd";
+SlashCmdList["BONUSXPDEBUG"] = function()
+	BonusXP:debugAuraData();
+end
 
 BonusXP:setup();
