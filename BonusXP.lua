@@ -120,13 +120,13 @@ local SpellXPInfo = {
 	[230272] = xpNoExperience, -- Stranglethorn Streaker -100%
 	[455050] = { questId = 1 }, -- "Blessings of the Bronze Dragonflight" 10%
 	[430191] = { questId = 1 }, -- "Warband Mentored Leveling" 5-25%
-	[423860] = { questId = 1 }, -- "Knowledge of Timeways" 5% (stored in the first effect slot)
-	[423861] = { questId = 1 }, -- "Mastery of Timeways" 30% (stored in the first effect slot)
 	[95987]  = { quest = 10 }, -- "Unburdened" 10% (API does not return XP bonus)
 	[24705]  = { quest = 10 }, -- "Grim Visage" 10% (API does not return XP bonus)
 	[1214848]= { quest = 20 }, -- "Winds of Mysterious Fortune" 20% for levels 10-80
 	[1221184]= { questId = 1}, -- "Surge of Mysterious Wisdom" 10% for levels 79 or below
 	[1232454]= { questId = 10 }, -- Infinite Power (Legion Remix)
+	[1269517]= { questId = 1 }, -- "Knowledge of Timeways" 5% (Midnight)
+	[1269518]= { questId = 1 }, -- "Mastery of Timeways" 30% (Midnight)
 
 	-- Next two auras have tooltip with 10% XP bonus but no XP bonus value provided
 	[290337] = { questId = 2, getBonus = xpBfaGetZoneBonus }, -- "Taste of Victory" 10%
@@ -495,8 +495,14 @@ function BonusXP:debugAuraData()
 		local spellInfo = SpellXPInfo[spellId];
 		local candidateOffsets = {};
 
-		for questId = 1, 5 do
-			candidateOffsets[#candidateOffsets + 1] = string.format("questId=%d -> sr[%d]=%s", questId, 15 + questId, tostring(sr[15 + questId]));
+		local lastOffsetValue = nil;
+		for questId = 1, 20 do
+			local offsetValue = sr[15 + questId];
+			if offsetValue == nil then
+				break;
+			end
+			candidateOffsets[#candidateOffsets + 1] = string.format("questId=%d -> sr[%d]=%s", questId, 15 + questId, tostring(offsetValue));
+			lastOffsetValue = offsetValue;
 		end
 
 		lines[#lines + 1] = string.format(
